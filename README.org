@@ -1,4 +1,4 @@
-* [[file:https://cultofthepartyparrot.com/parrots/parrot.gif]] Party Parrot Mode - Viva la parrot revolution!
+* [[file:https://cultofthepartyparrot.com/parrots/parrot.gif]] Parrot Mode - Viva la parrot revolution!
 
 [[https://travis-ci.org/dp12/parrot][file:https://api.travis-ci.org/dp12/parrot.png?branch=master]]
 [[http://www.gnu.org/licenses/gpl-3.0.html][file:http://img.shields.io/:license-gpl3-blue.svg]]
@@ -8,7 +8,7 @@ We developers are an entitled bunch. Since the times of the Romans, programmers 
 
 Unrealistic? Maybe, but it's 2018, and therefore parrots will now rotate on the screen using smooth circular motions, like those seen in kung fu.
 
-Polly want a word rotated? Now you can! Just use =parrot-next-word-at-point=. With the bird, a word. See the screen capture below, because a gif is worth a thousand pngs, or whatever.
+Polly want a word rotated? Now you can! Just use =parrot-rotate-next-word-at-point=. With the bird, a word. See the screen capture below, because a gif is worth a thousand pngs, or whatever.
 
 [[file:parrot_in_action.gif]]
 
@@ -19,25 +19,25 @@ Add the following to your emacs init file:
 (require 'parrot)
 #+end_src
 
-To see the party parrot in the modeline, turn on party parrot mode:
+To see the party parrot in the modeline, turn on parrot mode:
 #+begin_src emacs-lisp
-(party-parrot-mode)
+(parrot-mode)
 #+end_src
 
 Rotation function keybindings:
 #+begin_src emacs-lisp
 ;; for vanilla emacs
-(global-set-key (kbd "C-c p") 'parrot-prev-word-at-point)
-(global-set-key (kbd "C-c n") 'parrot-next-word-at-point)
+(global-set-key (kbd "C-c p") 'parrot-rotate-prev-word-at-point)
+(global-set-key (kbd "C-c n") 'parrot-rotate-next-word-at-point)
 
 ;; for evil users
-(define-key evil-normal-state-map (kbd "[r") 'parrot-prev-word-at-point)
-(define-key evil-normal-state-map (kbd "]r") 'parrot-next-word-at-point)
+(define-key evil-normal-state-map (kbd "[r") 'parrot-rotate-prev-word-at-point)
+(define-key evil-normal-state-map (kbd "]r") 'parrot-rotate-next-word-at-point)
 #+end_src
 *** Spacemacs Installation
-To get parrot working with spacemacs, you need to apply a few changes from this [[https://github.com/dp12/spaceline/commit/69d4f84575cf4a1837a6edeaaef128a3d8e26bb3][fork]] of spaceline to your =~/.emacs.d/elpa/2x.x/develop/spaceline-xxx/spaceline-(segments|config).el= files. Adjust the spaceline directory path accordingly if you are not using the develop branch.
+To get parrot working with spacemacs, you need to apply a few changes from this [[https://github.com/dp12/spaceline/commit/f0dff948ebb104fb43228f0bfb3ab18b11b4487a][fork]] of spaceline to your =~/.emacs.d/elpa/2x.x/develop/spaceline-xxx/spaceline-(segments|config).el= files. Adjust the spaceline directory path accordingly if you are not using the develop branch.
 ** Usage
-Use =parrot-next-word-at-point= and =parrot-prev-word-at-point= to rotate words at point. If a match is not found under the cursor, parrot will hunt for the nearest match in the current whitespace-delimited word and rotate it.
+Use =parrot-rotate-next-word-at-point= and =parrot-rotate-prev-word-at-point= to rotate words at point. If a match is not found under the cursor, parrot will hunt for the nearest match in the current whitespace-delimited word and rotate it.
 
 parrot uses a dictionary list that defines word rotations. You can override the default by setting =parrot-rotate-dict= in your init file. A sample one is provided below:
 
@@ -92,7 +92,7 @@ The following labels are provided for defining rotations in a dictionary entry:
 By default, after a rotation is performed, the selected parrot in the modeline will start rotating. You may select your desired parrot using:
 
 #+begin_src emacs-lisp
-(party-parrot-set-parrot-type 'science)
+(parrot-set-parrot-type 'science)
 #+end_src
 Like the wonders of the ancient world, parrot comes in 7 original flavors:
 | Parrot                                                                                                                                                                                                                        | Name     |
@@ -105,28 +105,28 @@ Like the wonders of the ancient world, parrot comes in 7 original flavors:
 | [[file:https://cultofthepartyparrot.com/parrots/scienceparrot.gif]]                                                                                                                                                           | science  |
 | [[file:https://cultofthepartyparrot.com/parrots/thumbsupparrot.gif]]                                                                                                                                                          | thumbsup |
 
-It is recommended that you bind =(party-parrot-start-animation)= to a easily reachable hotkey so you can command your parrot to rotate at will.
+It is recommended that you bind =(parrot-start-animation)= to a easily reachable hotkey so you can command your parrot to rotate at will.
 ** Customization
 *** Party parrot
-- =party-parrot-animation-frame-interval= - seconds between animation frames; can be a decimal number.
-- =party-parrot-minimum-window-width= - minimum width of the window, below which party parrot mode will be disabled.
-- =party-parrot-animate-party-parrot= - =t= to enable parrot animation, =nil= for a static image.
-- =party-parrot-spaces-before= - number of spaces of padding before the parrot.
-- =party-parrot-spaces-after= - number of spaces of padding after the parrot.
-- =party-parrot-num-rotations= - number of times the parrot will cycle through its gif.
+- =parrot-animation-frame-interval= - seconds between animation frames; can be a decimal number.
+- =parrot-minimum-window-width= - minimum width of the window, below which party parrot mode will be disabled.
+- =parrot-animate-parrot= - =t= to enable parrot animation, =nil= for a static image.
+- =parrot-spaces-before= - number of spaces of padding before the parrot.
+- =parrot-spaces-after= - number of spaces of padding after the parrot.
+- =parrot-num-rotations= - number of times the parrot will cycle through its gif.
 *** Rotations
-- =parrot-hunt-for-words= - =t= to rotate words that aren't directly under the cursor.
-- =parrot-jump-to-word-after-hunt= - =t= to jump to the word rotated if it isn't under the cursor.
-- =parrot-animate-after-rotation= - =t= to animate the party parrot after rotating a word.
-- =parrot-highlight-after-rotation= - =t= to highlight a word after rotating.
-- =parrot-start-char-invalid-regexp= - regexp used to determine if parrot shouldn't start a rotation.
-- =parrot-start-bound-regexp= - regexp used to find the start of the word to search for rotations.
-- =parrot-end-bound-regexp= - regexp used to find the end of the word to search for rotations.
+- =parrot-rotate-hunt-for-words= - =t= to rotate words that aren't directly under the cursor.
+- =parrot-rotate-jump-to-word-after-hunt= - =t= to jump to the word rotated if it isn't under the cursor.
+- =parrot-rotate-animate-after-rotation= - =t= to animate the party parrot after rotating a word.
+- =parrot-rotate-highlight-after-rotation= - =t= to highlight a word after rotating.
+- =parrot-rotate-start-char-invalid-regexp= - regexp used to determine if parrot shouldn't start a rotation.
+- =parrot-rotate-start-bound-regexp= - regexp used to find the start bound to search for rotations.
+- =parrot-rotate-end-bound-regexp= - regexp used to find the end bound to search for rotations.
 
 ** Misc
 If you want the parrot to animate whenever you receive mail in mu4e, you can use:
 #+begin_src emacs-lisp
-(add-hook 'mu4e-index-updated-hook #'party-parrot-start-animation)
+(add-hook 'mu4e-index-updated-hook #'parrot-start-animation)
 #+end_src
 
 Parrot is integration-tested with ecukes and is licensed under the GPLv3.

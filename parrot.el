@@ -1,10 +1,10 @@
-;;; parrot.el --- Parrot rotates words with smooth circular motions.  -*- lexical-binding: t; -*-
+;;; parrot.el --- Party Parrot rotates gracefully in mode-line.  -*- lexical-binding: t; -*-
 
 ;; Author: Daniel Ting <dp12@github.com>
 ;; URL: https://github.com/dp12/parrot.git
 ;; Version: 1.0.0
 ;; Package-Requires: ((emacs "24.1"))
-;; Keywords: party, parrot, rotate, sirocco, kakapo, convenience
+;; Keywords: party, parrot, rotate, sirocco, kakapo, games
 
 ;; This file is not part of GNU Emacs.
 
@@ -23,264 +23,196 @@
 
 ;;; Commentary:
 
-;; To load this file, add (require 'parrot) to your init file. You can also
-;; display the party parrot in your mode line by adding (party-parrot-mode).
+;; To load this file, add (require 'parrot) to your init file. You can display
+;; the party parrot in your mode line by adding (parrot-mode).
 ;;
-;; Portions of this code are copied and modified from Aaron Hawley's rotate text
-;; implementation. Check it out at https://www.emacswiki.org/emacs/RotateText.
+;; To get the parrot to rotate on new email messages in mu4e, add:
+;; (add-hook 'mu4e-index-updated-hook #'parrot-start-animation)
+;;
+;; This animation code is a heavily modified version of Jacek "TeMPOraL"
+;; Zlydach's famous nyan-mode. Check out his original work at
+;; https://github.com/TeMPOraL/nyan-mode/.
 
 ;;; Code:
 
-(require 'party-parrot)
+(require 'parrot-rotate)
 
-(defvar parrot-dict
-  '(
-    (:rot ("begin" "end") :caps t :upcase t)
-    (:rot ("enable" "disable") :caps t :upcase t)
-    (:rot ("enter" "exit") :caps t :upcase t)
-    (:rot ("forward" "backward") :caps t :upcase t)
-    (:rot ("front" "rear" "back") :caps t :upcase t)
-    (:rot ("get" "set") :caps t :upcase t)
-    (:rot ("high" "low") :caps t :upcase t)
-    (:rot ("in" "out") :caps t :upcase t)
-    (:rot ("left" "right") :caps t :upcase t)
-    (:rot ("min" "max") :caps t :upcase t)
-    (:rot ("on" "off") :caps t :upcase t)
-    (:rot ("prev" "next"))
-    (:rot ("start" "stop") :caps t :upcase t)
-    (:rot ("true" "false") :caps t :upcase t)
-    (:rot ("&&" "||"))
-    (:rot ("==" "!="))
-    (:rot ("." "->"))
-    (:rot ("if" "else" "elif"))
-    (:rot ("ifdef" "ifndef"))
-    (:rot ("int8_t" "int16_t" "int32_t" "int64_t"))
-    (:rot ("uint8_t" "uint16_t" "uint32_t" "uint64_t"))
-    (:rot ("1" "2" "3" "4" "5" "6" "7" "8" "9" "10"))
-    (:rot ("1st" "2nd" "3rd" "4th" "5th" "6th" "7th" "8th" "9th" "10th"))
-    ))
+(defconst parrot-directory (file-name-directory (or load-file-name buffer-file-name)))
+(defconst parrot-modeline-help-string "mouse-1: Rotate with parrot!")
 
-(defcustom parrot-hunt-for-words t
-  "Enable searching for replacements even if your cursor isn't on the word.
-This can be t or nil."
-  :type '(choice (const :tag "Enabled" t)
-                 (const :tag "Disabled" nil))
+;; ('v') (*'v') ('V'*) ('v'*)
+;; ('v') ('V') ('>') ('^') ('<') ('V') ('v')
+
+(defgroup parrot nil
+  "Customization group for `parrot-mode'."
+  :group 'frames)
+
+(defun parrot-refresh ()
+  "Refresh after option change if loaded."
+  (when (featurep 'parrot-mode)
+    (when (and (boundp 'parrot-mode)
+               parrot-mode)
+      (force-mode-line-update))))
+
+(defcustom parrot-animation-frame-interval 0.045
+  "Number of seconds between animation frames."
+  :type 'float
+  :set (lambda (sym val)
+         (set-default sym val)
+         (parrot-refresh))
   :group 'parrot)
 
-(defcustom parrot-jump-to-word-after-hunt t
-  "If a replacement is made on a word not under the cursor, jump to rotation.
-It has no effect if ‘parrot-hunt-for-words’ is nil. This can be t or nil."
-  :type '(choice (const :tag "Enabled" t)
-                 (const :tag "Disabled" nil))
-  :group 'parrot)
+(defvar parrot-animation-timer nil)
 
-(defcustom parrot-animate-after-rotation t
-  "If a replacement is made on a word, the party parrot will animate.
-This can be t or nil."
-  :type '(choice (const :tag "Enabled" t)
-                 (const :tag "Disabled" nil))
-  :group 'parrot)
+(defvar parrot-rotations 0)
 
-(defcustom parrot-highlight-after-rotation t
-  "If a replacement is made on a word, the replaced text will be highlighted.
-This can be t or nil."
-  :type '(choice (const :tag "Enabled" t)
-                 (const :tag "Disabled" nil))
-  :group 'parrot)
-
-(defcustom parrot-start-char-invalid-regexp "[[:blank:]]"
-  "Regex to check if character under cursor is invalid for starting a rotation."
-  :type 'string
-  :group 'parrot)
-
-(defcustom parrot-start-bound-regexp "[[:space:]]"
-  "Regex to use when searching for the start of a word.
-You can change it to [\]\[[:space:](){}<>] to treat braces/brackets as
-boundaries."
-  :type 'string
-  :group 'parrot)
-
-(defcustom parrot-end-bound-regexp "[[:space:]]"
-  "Regex to use when searching for the end of a word.
-You can change it to [\]\[[:space:](){}<>] to treat braces/brackets as
-boundaries."
-  :type 'string
-  :group 'parrot)
-
-(defface parrot-rotation-highlight-face
-  '((t (:inherit highlight)))
-  "Face used for highlighting rotations."
-  :group 'parrot)
-
-(defun parrot-convert-rotations-to-regexp (rotations)
-  "Return regular expressions for all entries in ROTATIONS."
-  (regexp-opt
-   (apply #'append
-          (mapcar (lambda (entry)
-                    (let ((rots-full (plist-get entry :rot)))
-                      (when (plist-member entry :lower)
-                        (when (not (plist-get entry :lower))
-                          (setq rots-full nil)))
-                      (when (plist-get entry :caps)
-                        (setq rots-full (append (mapcar #'capitalize (plist-get entry :rot)) rots-full)))
-                      (when (plist-get entry :upcase)
-                        (setq rots-full (append (mapcar #'upcase (plist-get entry :rot)) rots-full)))
-                      (unless rots-full
-                        (error "Invalid rotation list: %S" (plist-get entry :rot)))
-                      rots-full)
-                    ) rotations))))
-
-(defun parrot-get-rots-for (string)
-  "Return the string rotations for STRING in ROTATIONS."
-  (remq nil
-        (mapcar
-         (lambda (entry)
-           (let ((rot (plist-get entry :rot))
-                 (caps (plist-get entry :caps))
-                 (upcase (plist-get entry :upcase)))
-             (cond ((member string rot) rot)
-                   ((and caps (member string (mapcar #'capitalize rot)))
-                    (mapcar #'capitalize rot))
-                   ((and upcase (member string (mapcar #'upcase rot)))
-                    (mapcar #'upcase rot))))
-           ) parrot-dict)))
-
-(defun parrot-prev (string)
-  "Return the previous element before STRING in ROTATIONS."
-  (parrot-next string t))
-
-(defun parrot-next (string &optional reverse)
-  "Return the next element after STRING in ROTATIONS.
-If REVERSE is specified, a reversed rotation list will be used (equivalent to
-calling ‘parrot-prev’)."
-  (let ((rots (parrot-get-rots-for
-               string)))
-    (if (> (length rots) 1)
-        (error (format "Ambiguous rotation for %s" string))
-      (if (< (length rots) 1)
-          ;; If we get this far, this should not occur
-          nil
-        (let* ((rot-list (if reverse
-                             (reverse (car rots))
-                           (car rots)))
-              (occurs-in-rots (member string rot-list)))
-          (if (null occurs-in-rots)
-              ;; If we get this far, this should *never* occur:
-              (error (format "Unknown rotation for %s" string))
-            (if (null (cdr occurs-in-rots))
-                (car rot-list)
-              (cadr occurs-in-rots))))))))
-
-(defun parrot-prev-word-at-point ()
-  "Rotate the word at point to the previous word in ‘parrot-dict’."
+(defun parrot-start-animation ()
+  "Start the parrot animation."
   (interactive)
-  (parrot-rotate-word-at-point #'parrot-prev))
+  (setq parrot-rotations 0)
+  (when (not (and parrot-animate-parrot
+                  parrot-animation-timer))
+    (setq parrot-animation-timer (run-at-time nil
+                                              parrot-animation-frame-interval
+                                              #'parrot-switch-anim-frame))
+    (setq parrot-animate-parrot t)))
 
-(defun parrot-next-word-at-point ()
-  "Rotate the word at point to the next word in ‘parrot-dict’."
+(defun parrot-stop-animation ()
+  "Stop the parrot animation."
   (interactive)
-  (parrot-rotate-word-at-point #'parrot-next))
+  (when (and parrot-animate-parrot
+             parrot-animation-timer)
+    (cancel-timer parrot-animation-timer)
+    (setq parrot-animation-timer nil)
+    (setq parrot-animate-parrot nil)))
 
-(defun parrot-rotate-word-at-point (rotate-func)
-  "Rotates the word at point using ROTATE-FUNC."
-  (let* (
-        (start-cursor (point))
-        (end-cursor start-cursor)
-        (word-start nil)
-        (word-end-mark nil)
-        (replace-start nil)
-        (replace-end nil)
-        (regexp (parrot-convert-rotations-to-regexp parrot-dict))
-        (case-fold-search nil)
-        (pulse-flag nil))
+(defcustom parrot-minimum-window-width 45
+  "Determines the minimum width of the window, below which party parrot will not be displayed."
+  :type 'integer
+  :set (lambda (sym val)
+         (set-default sym val)
+         (parrot-refresh))
+  :group 'parrot)
 
-    ;; Make sure cursor isn't on an invalid character, e.g. blank character
-    (when (looking-at-p parrot-start-char-invalid-regexp)
-      (error "No parrot matches found"))
+(defcustom parrot-animate-parrot nil
+  "Enable animation for party parrot.
+This can be t or nil."
+  :type '(choice (const :tag "Enabled" t)
+                 (const :tag "Disabled" nil))
+  :set (lambda (sym val)
+         (set-default sym val)
+         (if val
+             (parrot-start-animation)
+           (parrot-stop-animation))
+         (parrot-refresh))
+  :group 'parrot)
 
-    (save-excursion
-      ;; Find the bounds of the current word
-      (if (re-search-forward parrot-end-bound-regexp (line-end-position) t)
-          (progn
-            (backward-char)
-            (setq word-end-mark (copy-marker (point))))
-        (setq word-end-mark (copy-marker (line-end-position))))
-      (if (re-search-backward parrot-start-bound-regexp (line-beginning-position) t)
-          (progn
-            (forward-char)
-            (setq word-start (point)))
-        (setq word-start (line-beginning-position)))
+(defcustom parrot-spaces-before 0
+  "Spaces of padding before parrot in mode line."
+  :type 'integer
+  :set (lambda (sym val)
+         (set-default sym val)
+         (parrot-refresh))
+  :group 'parrot)
 
-      ;; Search the whole word; if the start-cursor is within a match, rotate the match and exit
-      (goto-char word-start)
-      (let ((did-replace nil))
-        (while (and (not did-replace) (re-search-forward regexp (marker-position word-end-mark) t))
-          (when (and (< start-cursor (match-end 0)) (> start-cursor (- (match-beginning 0) 1)))
-              (replace-match (funcall rotate-func (match-string 0)) t)
-              ;; If the replacement text is shorter than original text and the
-              ;; cursor would fall off of it after replacement, move back the
-              ;; cursor to the end of the replaced word.
-              ;; e.g. false| --> true|
-              (when (> (- start-cursor (match-beginning 0))
-                       (- (- (point) 1) (match-beginning 0)))
-                (setq end-cursor (- (point) 1)))
-              (setq did-replace t)))
+(defcustom parrot-spaces-after 0
+  "Spaces of padding after parrot in the mode line."
+  :type 'integer
+  :set (lambda (sym val)
+         (set-default sym val)
+         (parrot-refresh))
+  :group 'parrot)
 
-        ;; Cursor is not on a match, look right and left for matches and see
-        ;; which match is closer
-        (when (and parrot-hunt-for-words (not did-replace))
-          (let ((rmatch nil)
-                (lmatch nil)
-                (rmatch-start nil)
-                (lmatch-end nil)
-                (rmatch-data nil))
-          (goto-char start-cursor)
-          (when (re-search-forward regexp (marker-position word-end-mark) t)
-            (setq rmatch (match-string 0))
-            (setq rmatch-start (- (match-beginning 0) 1))
-            (setq rmatch-data (match-data)))
-          (goto-char start-cursor)
-          (when (re-search-backward regexp word-start t)
-            (setq lmatch (match-string 0))
-            (setq lmatch-end (match-end 0)))
+(defcustom parrot-num-rotations 3
+  "How many times party parrot will rotate."
+  :type 'integer
+  :group 'parrot)
 
-          (setq did-replace t)
-          (cond
-           ;; Case 1: No matches
-           ((and (not lmatch) (not rmatch)) (progn
-                                              (error "No parrot matches found")
-                                              (setq did-replace nil)))
-           ;; Case 2: One match to the left
-           ((not rmatch) (progn
-                           (replace-match (funcall rotate-func lmatch) t)
-                           (when parrot-jump-to-word-after-hunt
-                             (setq end-cursor (- (point) 1)))))
-           ;; Case 3: One match to the right
-           ((not lmatch) (progn
-                           (set-match-data rmatch-data)
-                           (replace-match (funcall rotate-func rmatch) t)
-                           (when parrot-jump-to-word-after-hunt
-                             (setq end-cursor (+ rmatch-start 1)))))
-           ;; Case 4: Matches to the left and right
-           (t (if (< (- start-cursor lmatch-end) (- rmatch-start start-cursor))
-                  ;; Left match is closer
-                  (progn
-                    (replace-match (funcall rotate-func lmatch) t)
-                    (when parrot-jump-to-word-after-hunt
-                      (setq end-cursor (- (point) 1))))
-                ;; Right match is closer
-                (set-match-data rmatch-data)
-                (replace-match (funcall rotate-func rmatch) t)
-                (when parrot-jump-to-word-after-hunt
-                  (setq end-cursor (+ rmatch-start 1))))))))
-        (when did-replace
-          (when (and (fboundp #'pulse-momentary-highlight-region) parrot-highlight-after-rotation)
-            (setq replace-start (match-beginning 0))
-            (setq replace-end (point))
-            (pulse-momentary-highlight-region replace-start replace-end 'parrot-rotation-highlight-face))
-          (when parrot-animate-after-rotation
-            (party-parrot-start-animation)))))
-    (goto-char end-cursor)))
+(defvar parrot-frame-list (number-sequence 1 10))
+(defvar parrot-type nil)
+(defvar parrot-static-image nil)
+(defvar parrot-animation-frames nil)
+
+(defun parrot-load-frames (parrot)
+  "Load the images for the selected PARROT."
+  (when (image-type-available-p 'xpm)
+    (setq parrot-static-image (create-image (concat parrot-directory (format "img/%s/%s-parrot-frame-1.xpm" parrot parrot)) 'xpm nil :ascent 'center))
+    (setq parrot-animation-frames (mapcar (lambda (id)
+                                                  (create-image (concat parrot-directory (format "img/%s/%s-parrot-frame-%d.xpm" parrot parrot id))
+                                                                'xpm nil :ascent 'center))
+                                                parrot-frame-list))))
+
+(defun parrot-set-parrot-type (parrot)
+  "Set the desired PARROT type in the mode line."
+  (interactive (list (completing-read "Select parrot: "
+                                      '(default confused emacs nyan rotating science thumbsup))))
+  (let ((parrot-found t))
+    (cond ((string= parrot "default") (setq parrot-frame-list (number-sequence 1 10)))
+          ((string= parrot "confused") (setq parrot-frame-list (number-sequence 1 26)))
+          ((string= parrot "emacs") (setq parrot-frame-list (number-sequence 1 10)))
+          ((string= parrot "nyan") (setq parrot-frame-list (number-sequence 1 10)))
+          ((string= parrot "rotating") (setq parrot-frame-list (number-sequence 1 13)))
+          ((string= parrot "science") (setq parrot-frame-list (number-sequence 1 10)))
+          ((string= parrot "thumbsup") (setq parrot-frame-list (number-sequence 1 12)))
+          (t (setq parrot-found nil))
+          )
+    (if (not parrot-found)
+        (message (format "Error: no %s parrot available" parrot))
+      (setq parrot-type parrot)
+      (parrot-load-frames parrot)
+      (run-at-time "0.5 seconds" nil #'parrot-start-animation)
+      (message (format "%s parrot selected" parrot)))))
+
+(defvar parrot-current-frame 0)
+
+(defun parrot-switch-anim-frame ()
+  "Change to the next frame in the parrot animation.
+If the parrot has already
+rotated for `parrot-num-rotations', the animation will stop."
+  (setq parrot-current-frame (% (+ 1 parrot-current-frame) (car (last parrot-frame-list))))
+  (when (eq parrot-current-frame 0)
+    (setq parrot-rotations (+ 1 parrot-rotations))
+    (when (>= parrot-rotations parrot-num-rotations)
+      (parrot-stop-animation)))
+  (force-mode-line-update))
+
+(defun parrot-get-anim-frame ()
+  "Get the current animation frame."
+  (if parrot-animate-parrot
+      (nth parrot-current-frame parrot-animation-frames)
+    parrot-static-image))
+
+(defun parrot-add-click-handler (string)
+  "Add a handler to STRING for animating the parrot when it is clicked."
+  (propertize string 'keymap `(keymap (mode-line keymap (down-mouse-1 . ,(lambda () (interactive) (parrot-start-animation)))))))
+
+(defun parrot-create ()
+  "Generate the party parrot string."
+  (if (< (window-width) parrot-minimum-window-width)
+      ""                                ; disabled for too small windows
+    (let ((parrot-string (make-string parrot-spaces-before ?\s)))
+      (setq parrot-string (concat parrot-string (parrot-add-click-handler
+                                                             (propertize "-" 'display (parrot-get-anim-frame)))
+                                        (make-string parrot-spaces-after ?\s)))
+      (propertize parrot-string 'help-echo parrot-modeline-help-string))))
+
+(defvar parrot-old-cdr-mode-line-position nil)
+
+;;;###autoload
+(define-minor-mode parrot-mode
+  "Use Parrot to show when you're rotating
+You can customize this minor mode, see option `parrot-mode'."
+  :global t
+  :group 'parrot
+  :require 'parrot
+  (if parrot-mode
+      (progn
+        (unless parrot-type (parrot-set-parrot-type 'default))
+        (unless parrot-old-cdr-mode-line-position
+          (setq parrot-old-cdr-mode-line-position (cdr mode-line-position)))
+        (setcdr mode-line-position (cons '(:eval (list (parrot-create)))
+                                         (cdr parrot-old-cdr-mode-line-position))))
+    (setcdr mode-line-position parrot-old-cdr-mode-line-position)))
 
 (provide 'parrot)
 
