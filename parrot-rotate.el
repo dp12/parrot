@@ -1,6 +1,6 @@
 ;;; parrot-rotate.el --- Parrot rotates words with smooth circular motions.  -*- lexical-binding: t; -*-
 
-;; Author: Daniel Ting <dp12@github.com>
+;; Author: Daniel Ting <deep.paren.12@gmail.com>
 ;; URL: https://github.com/dp12/parrot.git
 ;; Version: 1.0.0
 ;; Package-Requires: ((emacs "24.1"))
@@ -56,29 +56,26 @@
     ))
 
 (defcustom parrot-rotate-hunt-for-words t
-  "Enable searching for replacements even if your cursor isn't on the word.
-This can be t or nil."
+  "If non-nil, search for replacements even if your cursor isn't on the word."
   :type '(choice (const :tag "Enabled" t)
                  (const :tag "Disabled" nil))
   :group 'parrot)
 
 (defcustom parrot-rotate-jump-to-word-after-hunt t
-  "If a replacement is made on a word not under the cursor, jump to rotation.
-It has no effect if ‘parrot-rotate-hunt-for-words’ is nil. This can be t or nil."
+  "If non-nil, jump to rotation after replacement on word not under the cursor.
+It has no effect if ‘parrot-rotate-hunt-for-words’ is nil."
   :type '(choice (const :tag "Enabled" t)
                  (const :tag "Disabled" nil))
   :group 'parrot)
 
 (defcustom parrot-rotate-animate-after-rotation t
-  "If a replacement is made on a word, the party parrot will animate.
-This can be t or nil."
+  "If non-nil, the party parrot will animate when a replacement is made."
   :type '(choice (const :tag "Enabled" t)
                  (const :tag "Disabled" nil))
   :group 'parrot)
 
 (defcustom parrot-rotate-highlight-after-rotation t
-  "If a replacement is made on a word, the replaced text will be highlighted.
-This can be t or nil."
+  "If non-nil, replaced text will be highlighted after a rotation."
   :type '(choice (const :tag "Enabled" t)
                  (const :tag "Disabled" nil))
   :group 'parrot)
@@ -126,11 +123,11 @@ it to [\]\[[:space:](){}<>] to treat braces/brackets as boundaries."
                         (setq rots-full (append (mapcar #'upcase (plist-get entry :rot)) rots-full)))
                       (unless rots-full
                         (error "Invalid rotation list: %S" (plist-get entry :rot)))
-                      rots-full)
-                    ) rotations))))
+                      rots-full))
+                  rotations))))
 
 (defun parrot-rotate-get-rots-for (string)
-  "Return the string rotations for STRING in ROTATIONS."
+  "Return the string rotations for STRING."
   (remq nil
         (mapcar
          (lambda (entry)
@@ -141,19 +138,18 @@ it to [\]\[[:space:](){}<>] to treat braces/brackets as boundaries."
                    ((and caps (member string (mapcar #'capitalize rot)))
                     (mapcar #'capitalize rot))
                    ((and upcase (member string (mapcar #'upcase rot)))
-                    (mapcar #'upcase rot))))
-           ) parrot-rotate-dict)))
+                    (mapcar #'upcase rot)))))
+         parrot-rotate-dict)))
 
 (defun parrot-rotate-prev (string)
   "Return the previous element before STRING in ROTATIONS."
   (parrot-rotate-next string t))
 
 (defun parrot-rotate-next (string &optional reverse)
-  "Return the next element after STRING in ROTATIONS.
+  "Return the next element in the dictionary after STRING.
 If REVERSE is specified, a reversed rotation list will be used (equivalent to
 calling ‘parrot-rotate-prev’)."
-  (let ((rots (parrot-rotate-get-rots-for
-               string)))
+  (let ((rots (parrot-rotate-get-rots-for string)))
     (if (> (length rots) 1)
         (error (format "Ambiguous rotation for %s" string))
       (if (< (length rots) 1)
@@ -180,6 +176,7 @@ calling ‘parrot-rotate-prev’)."
   (interactive)
   (parrot-rotate-word-at-point #'parrot-rotate-next))
 
+(declare-function parrot-start-animation parrot)
 (defun parrot-rotate-word-at-point (rotate-func)
   "Rotates the word at point using ROTATE-FUNC."
   (let* ((start-cursor (point))

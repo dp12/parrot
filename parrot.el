@@ -1,6 +1,6 @@
 ;;; parrot.el --- Party Parrot rotates gracefully in mode-line.  -*- lexical-binding: t; -*-
 
-;; Author: Daniel Ting <dp12@github.com>
+;; Author: Daniel Ting <deep.paren.12@gmail.com>
 ;; URL: https://github.com/dp12/parrot.git
 ;; Version: 1.0.0
 ;; Package-Requires: ((emacs "24.1"))
@@ -59,8 +59,7 @@
   :type 'float
   :set (lambda (sym val)
          (set-default sym val)
-         (parrot-refresh))
-  :group 'parrot)
+         (parrot-refresh)))
 
 (defvar parrot-animation-timer nil)
 
@@ -91,12 +90,10 @@
   :type 'integer
   :set (lambda (sym val)
          (set-default sym val)
-         (parrot-refresh))
-  :group 'parrot)
+         (parrot-refresh)))
 
 (defcustom parrot-animate-parrot nil
-  "Enable animation for party parrot.
-This can be t or nil."
+  "If non-nil, parrot animation is enabled."
   :type '(choice (const :tag "Enabled" t)
                  (const :tag "Disabled" nil))
   :set (lambda (sym val)
@@ -104,29 +101,25 @@ This can be t or nil."
          (if val
              (parrot-start-animation)
            (parrot-stop-animation))
-         (parrot-refresh))
-  :group 'parrot)
+         (parrot-refresh)))
 
 (defcustom parrot-spaces-before 0
   "Spaces of padding before parrot in mode line."
   :type 'integer
   :set (lambda (sym val)
          (set-default sym val)
-         (parrot-refresh))
-  :group 'parrot)
+         (parrot-refresh)))
 
 (defcustom parrot-spaces-after 0
   "Spaces of padding after parrot in the mode line."
   :type 'integer
   :set (lambda (sym val)
          (set-default sym val)
-         (parrot-refresh))
-  :group 'parrot)
+         (parrot-refresh)))
 
 (defcustom parrot-num-rotations 3
   "How many times party parrot will rotate."
-  :type 'integer
-  :group 'parrot)
+  :type 'integer)
 
 (defvar parrot-frame-list (number-sequence 1 10))
 (defvar parrot-type nil)
@@ -154,8 +147,7 @@ This can be t or nil."
           ((string= parrot "rotating") (setq parrot-frame-list (number-sequence 1 13)))
           ((string= parrot "science") (setq parrot-frame-list (number-sequence 1 10)))
           ((string= parrot "thumbsup") (setq parrot-frame-list (number-sequence 1 12)))
-          (t (setq parrot-found nil))
-          )
+          (t (setq parrot-found nil)))
     (if (not parrot-found)
         (message (format "Error: no %s parrot available" parrot))
       (setq parrot-type parrot)
@@ -167,8 +159,8 @@ This can be t or nil."
 
 (defun parrot-switch-anim-frame ()
   "Change to the next frame in the parrot animation.
-If the parrot has already
-rotated for `parrot-num-rotations', the animation will stop."
+If the parrot has already rotated for `parrot-num-rotations', the animation will
+stop."
   (setq parrot-current-frame (% (+ 1 parrot-current-frame) (car (last parrot-frame-list))))
   (when (eq parrot-current-frame 0)
     (setq parrot-rotations (+ 1 parrot-rotations))
@@ -200,10 +192,9 @@ rotated for `parrot-num-rotations', the animation will stop."
 
 ;;;###autoload
 (define-minor-mode parrot-mode
-  "Use Parrot to show when you're rotating
+  "Use Parrot to show when you're rotating.
 You can customize this minor mode, see option `parrot-mode'."
   :global t
-  :group 'parrot
   :require 'parrot
   (if parrot-mode
       (progn
