@@ -111,20 +111,22 @@ it to [\]\[[:space:](){}<>] to treat braces/brackets as boundaries."
 (defun parrot-rotate-convert-rotations-to-regexp (rotations)
   "Return regular expressions for all entries in ROTATIONS."
   (regexp-opt
-   (apply #'append
-          (mapcar (lambda (entry)
-                    (let ((rots-full (plist-get entry :rot)))
-                      (when (plist-member entry :lower)
-                        (when (not (plist-get entry :lower))
-                          (setq rots-full nil)))
-                      (when (plist-get entry :caps)
-                        (setq rots-full (append (mapcar #'capitalize (plist-get entry :rot)) rots-full)))
-                      (when (plist-get entry :upcase)
-                        (setq rots-full (append (mapcar #'upcase (plist-get entry :rot)) rots-full)))
-                      (unless rots-full
-                        (error "Invalid rotation list: %S" (plist-get entry :rot)))
-                      rots-full))
-                  rotations))))
+   (mapcan
+    (lambda (entry)
+      (let ((entry-rotations
+             (append
+              (unless (and (plist-member entry :lower) (not (plist-get entry :lower)))
+                (plist-get entry :rot))
+              (when (plist-get entry :caps)
+                (mapcar #'capitalize (plist-get entry :rot)))
+              (when (plist-get entry :upcase)
+                (mapcar #'upcase (plist-get entry :rot))))))
+        (unless entry-rotations
+          (error "%S has no rotations" (plist-get entry :rot)))
+        (unless (> (length (plist-get entry :rot)) 1)
+          (error "%S must have at least two rotations" (plist-get entry :rot)))
+        entry-rotations))
+    rotations)))
 
 (defun parrot-rotate-get-rots-for (string)
   "Return the string rotations for STRING."
