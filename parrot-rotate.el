@@ -149,24 +149,24 @@ it to [\]\[[:space:](){}<>] to treat braces/brackets as boundaries."
 
 (defun parrot-rotate-next (string &optional reverse)
   "Return the next element in the dictionary after STRING.
-If REVERSE is specified, a reversed rotation list will be used (equivalent to
+If REVERSE is specified, the previous item will be returned (equivalent to
 calling ‘parrot-rotate-prev’)."
   (let ((rots (parrot-rotate-get-rots-for string)))
-    (if (> (length rots) 1)
-        (error (format "Ambiguous rotation for %s" string))
-      (if (< (length rots) 1)
-          ;; If we get this far, this should not occur
-          nil
-        (let* ((rot-list (if reverse
-                             (reverse (car rots))
-                           (car rots)))
-              (occurs-in-rots (member string rot-list)))
-          (if (null occurs-in-rots)
-              ;; If we get this far, this should *never* occur:
-              (error (format "Unknown rotation for %s" string))
-            (if (null (cdr occurs-in-rots))
-                (car rot-list)
-              (cadr occurs-in-rots))))))))
+    (when (> (length rots) 1)
+      (error (format "Ambiguous rotation for %s" string)))
+    (if (< (length rots) 1)
+        ;; If we get this far, this should not occur
+        nil
+      (let* ((rot-list (if reverse
+                           (reverse (car rots))
+                         (car rots)))
+             (occurs-in-rots (member string rot-list)))
+        (when (null occurs-in-rots)
+          ;; If we get this far, this should *never* occur:
+          (error (format "Unknown rotation for %s" string)))
+        (if (null (cdr occurs-in-rots))
+            (car rot-list)
+          (cadr occurs-in-rots))))))
 
 (defun parrot-rotate-prev-word-at-point ()
   "Rotate the word at point to the previous word in ‘parrot-rotate-dict’."
