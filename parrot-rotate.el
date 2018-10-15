@@ -28,6 +28,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 (defvar parrot-rotate-dict
   '(
     (:rot ("begin" "end") :caps t :upcase t)
@@ -111,7 +113,7 @@ it to [\]\[[:space:](){}<>] to treat braces/brackets as boundaries."
 (defun parrot-rotate-convert-rotations-to-regexp (rotations)
   "Return regular expressions for all entries in ROTATIONS."
   (regexp-opt
-   (mapcan
+   (cl-mapcan
     (lambda (entry)
       (let ((entry-rotations
              (append
