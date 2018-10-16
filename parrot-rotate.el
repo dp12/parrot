@@ -24,7 +24,7 @@
 ;;; Commentary:
 ;;
 ;; Portions of this code are copied and modified from Aaron Hawley's rotate text
-;; implementation. Check it out at https://www.emacswiki.org/emacs/RotateText.
+;; implementation.  Check it out at https://www.emacswiki.org/emacs/RotateText.
 
 ;;; Code:
 
@@ -90,18 +90,18 @@ It has no effect if ‘parrot-rotate-hunt-for-words’ is nil."
 (defcustom parrot-rotate-start-bound-regexp "[[:space:]]"
   "Regex to search backward for text rotation start point.
 This should be the point before the start character that will be NOT considered
-part of the text rotation scope. By default, it is set to [[:space:]], so parrot
-will search a whitespace-delimited word for potential rotations. You can change
-it to [\]\[[:space:](){}<>] to treat braces/brackets as boundaries."
+part of the text rotation scope.  By default, it is set to [[:space:]], so
+parrot will search a whitespace-delimited word for potential rotations.  You can
+change it to [\]\[[:space:](){}<>] to treat braces/brackets as boundaries."
   :type 'string
   :group 'parrot)
 
 (defcustom parrot-rotate-end-bound-regexp "[[:space:]]"
   "Regex to search forward for text rotation end point.
 This should be the point after the end character that will be NOT considered
-part of the text rotation scope. By default, it is set to [[:space:]], so parrot
-will search a whitespace-delimited word for potential rotations. You can change
-it to [\]\[[:space:](){}<>] to treat braces/brackets as boundaries."
+part of the text rotation scope.  By default, it is set to [[:space:]], so
+parrot will search a whitespace-delimited word for potential rotations.  You can
+change it to [\]\[[:space:](){}<>] to treat braces/brackets as boundaries."
   :type 'string
   :group 'parrot)
 
@@ -111,7 +111,10 @@ it to [\]\[[:space:](){}<>] to treat braces/brackets as boundaries."
   :group 'parrot)
 
 (defun parrot-rotate-convert-rotations-to-regexp (rotations)
-  "Return regular expressions for all entries in ROTATIONS."
+  "Return regular expressions for all entries in ROTATIONS.
+ROTATIONS contains lists of strings with optional :lower, :caps, or :upcase
+labels.  The regular expression returned checks for a match with any one of the
+strings in the entire rotation list."
   (regexp-opt
    (cl-mapcan
     (lambda (entry)
@@ -131,7 +134,11 @@ it to [\]\[[:space:](){}<>] to treat braces/brackets as boundaries."
     rotations)))
 
 (defun parrot-rotate-get-rots-for (string)
-  "Return the string rotations for STRING."
+  "Return the string rotations for STRING.
+Given STRING, this function returns a list of the rotations available for it, as
+defined in `parrot-rotate-dict`.  If the :caps or :upcase labels are specified
+and the string is capitalized or upcased, the corresponding capitalized or
+upcased versions of the rotations will returned."
   (remq nil
         (mapcar
          (lambda (entry)
