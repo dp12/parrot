@@ -13,7 +13,7 @@ Feature: Rotate words
     """
     this_is_snek_charmer_stawp
     """
-    And I go to word "snek"
+    And I place the cursor between "is_" and "snek"
     And I call "parrot-rotate-next-word-at-point"
     Then I should see:
     """
@@ -99,6 +99,7 @@ Feature: Rotate words
     """
     truehumebugthat
     """
+    Then the cursor should be between "bug" and "that"
     And I place the cursor between "hume" and "bug"
     And I call "parrot-rotate-next-word-at-point"
     Then I should see:
@@ -111,6 +112,101 @@ Feature: Rotate words
     """
     falsehumebugthis
     """
+    Then the cursor should be between "fals" and "ehume"
+
+  Scenario: When parrot-rotate-hunt-for-words is nil, don't jump to other matches
+    Given I set parrot-rotate-dict to ((:rot ("true" "false")) (:rot ("this" "that")))
+    And I set parrot-rotate-hunt-for-words to nil
+    And I insert:
+    """
+    truehumebugthis
+    """
+    And I place the cursor between "hum" and "ebug"
+    Then parrot-rotate-next-word-at-point should throw an error
+    Then I should see:
+    """
+    truehumebugthis
+    """
+
+  Scenario: When cursor is on blank space, don't rotate.
+    Given I set parrot-rotate-dict to ((:rot ("lost" "space")))
+    And I insert:
+    """
+    lost in space
+    """
+    And I place the cursor between "t " and "in"
+    Then parrot-rotate-next-word-at-point should throw an error
+    Then I should see:
+    """
+    lost in space
+    """
+    Then the cursor should be between "t " and "in"
+    And I place the cursor between "in" and " space"
+    Then parrot-rotate-next-word-at-point should throw an error
+    Then I should see:
+    """
+    lost in space
+    """
+    Then the cursor should be between "in" and " space"
+
+  Scenario: When parrot-rotate-jump-to-word-after-hunt is nil, rotate match, but don't jump to match
+    Given I set parrot-rotate-dict to ((:rot ("true" "false")) (:rot ("this" "that")))
+    And I set parrot-rotate-jump-to-word-after-hunt to nil
+    And I insert:
+    """
+    truehumebugthis
+    """
+    And I place the cursor between "hum" and "ebug"
+    And I call "parrot-rotate-next-word-at-point"
+    Then I should see:
+    """
+    truehumebugthat
+    """
+    Then the cursor should be between "hum" and "ebug"
+    And I place the cursor between "hume" and "bug"
+    And I call "parrot-rotate-next-word-at-point"
+    Then I should see:
+    """
+    truehumebugthis
+    """
+    Then the cursor should be between "hume" and "bug"
+    And I place the cursor between "hu" and "mebug"
+    And I call "parrot-rotate-next-word-at-point"
+    Then I should see:
+    """
+    falsehumebugthis
+    """
+    Then the cursor should be between "falseh" and "umebug"
+
+  Scenario: Test invalid dictionary with no rotations
+    Given I set parrot-rotate-dict to ((:rot ("hakuna" "matata") :lower nil))
+    And I insert:
+    """
+    hakuna
+    """
+    And I place the cursor between "hak" and "una"
+    Then parrot-rotate-next-word-at-point should throw an error
+    Then the cursor should be between "hak" and "una"
+
+  Scenario: Test invalid dictionary with one rotation
+    Given I set parrot-rotate-dict to ((:rot ("hakuna")))
+    And I insert:
+    """
+    hakuna
+    """
+    And I place the cursor between "hak" and "una"
+    Then parrot-rotate-next-word-at-point should throw an error
+    Then the cursor should be between "hak" and "una"
+
+  Scenario: Test invalid dictionary with one rotation
+    Given I set parrot-rotate-dict to ((:rot ("needle" "haystack")) (:rot ("needle" "noodle")))
+    And I insert:
+    """
+    needle_in_a_haystack
+    """
+    And I place the cursor between "nee" and "dle"
+    Then parrot-rotate-next-word-at-point should throw an error
+    Then the cursor should be between "nee" and "dle"
 
   Scenario: Rotation with capitalized option set
     Given I set parrot-rotate-dict to ((:rot ("case" "casey") :caps t))

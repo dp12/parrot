@@ -23,7 +23,8 @@
 
 (Before
  ;; Before each scenario is run
- )
+ (setq parrot-rotate-hunt-for-words t)
+ (setq parrot-rotate-jump-to-word-after-hunt t))
 
 (After
  ;; After each scenario is run

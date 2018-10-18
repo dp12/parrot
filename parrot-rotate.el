@@ -250,9 +250,7 @@ calling ‘parrot-rotate-prev’)."
           (setq did-replace t)
           (cond
            ;; Case 1: No matches
-           ((and (not lmatch) (not rmatch)) (progn
-                                              (error "No parrot matches found")
-                                              (setq did-replace nil)))
+           ((and (not lmatch) (not rmatch)) (setq did-replace nil))
            ;; Case 2: One match to the left
            ((not rmatch) (progn
                            (replace-match (funcall rotate-func lmatch) t)
@@ -276,14 +274,16 @@ calling ‘parrot-rotate-prev’)."
                 (replace-match (funcall rotate-func rmatch) t)
                 (when parrot-rotate-jump-to-word-after-hunt
                   (setq end-cursor (+ rmatch-start 1))))))))
-        (when did-replace
-          (when (and (fboundp #'pulse-momentary-highlight-region) parrot-rotate-highlight-after-rotation)
-            (let ((replace-start (match-beginning 0))
-                  (replace-end (point))
-                  (pulse-flag nil))
-            (pulse-momentary-highlight-region replace-start replace-end 'parrot-rotate-rotation-highlight-face)))
-          (when parrot-rotate-animate-after-rotation
-            (parrot-start-animation)))))
+        (if did-replace
+            (progn
+              (when (and (fboundp #'pulse-momentary-highlight-region) parrot-rotate-highlight-after-rotation)
+                (let ((replace-start (match-beginning 0))
+                      (replace-end (point))
+                      (pulse-flag nil))
+                  (pulse-momentary-highlight-region replace-start replace-end 'parrot-rotate-rotation-highlight-face)))
+              (when parrot-rotate-animate-after-rotation
+                (parrot-start-animation)))
+          (error "No parrot matches found"))))
     (goto-char end-cursor)))
 
 (provide 'parrot-rotate)
