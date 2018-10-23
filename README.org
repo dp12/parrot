@@ -148,3 +148,5 @@ A special thanks to [[https://github.com/TeMPOraL][@TeMPOral]], without which pa
 #+BEGIN_QUOTE
 Some parrots stand on the shoulders of giant nyan cats.
 #+END_QUOTE
+
+[[file:parrot3cat.png]]

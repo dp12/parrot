@@ -49,9 +49,8 @@
 
 (defun parrot-refresh ()
   "Refresh after option change if loaded."
-  (when (featurep 'parrot-mode)
-    (when (and (boundp 'parrot-mode)
-               parrot-mode)
+  (when (featurep 'parrot)
+    (when (bound-and-true-p parrot-mode)
       (force-mode-line-update))))
 
 (defcustom parrot-animation-frame-interval 0.045
@@ -61,9 +60,11 @@
          (set-default sym val)
          (parrot-refresh)))
 
-(defvar parrot-animation-timer nil)
+(defvar parrot-animation-timer nil
+  "Internal timer used for switching animation frames.")
 
-(defvar parrot-rotations 0)
+(defvar parrot-rotations 0
+  "Counter of how many times the parrot has rotated.")
 
 (defun parrot-start-animation ()
   "Start the parrot animation."
@@ -121,39 +122,53 @@
   "How many times party parrot will rotate."
   :type 'integer)
 
-(defvar parrot-frame-list (number-sequence 1 10))
-(defvar parrot-type nil)
-(defvar parrot-static-image nil)
-(defvar parrot-animation-frames nil)
+(defvar parrot-frame-list (number-sequence 1 10)
+  "List of indices for the parrot animation frames.
+For example, an animation with a total of ten frames would have a
+`parrot-frame-list` of (1 2 3 4 5 6 7 8 9 10)")
+
+(defvar parrot-type nil
+  "The type of parrot selected, e.g. default or science.")
+
+(defvar parrot-static-image nil
+  "The image shown when parrot is at rest, i.e. not rotating.")
+
+(defvar parrot-animation-frames nil
+  "A list of the animation frames for the current parrot.")
+
+(defun parrot-create-frame (parrot id)
+  "Create image for frame with parrot type PARROT and frame id ID."
+  (create-image (concat parrot-directory
+                        (format "img/%s/%s-parrot-frame-%d.xpm" parrot parrot id)) 'xpm nil :ascent 'center))
 
 (defun parrot-load-frames (parrot)
   "Load the images for the selected PARROT."
   (when (image-type-available-p 'xpm)
-    (setq parrot-static-image (create-image (concat parrot-directory (format "img/%s/%s-parrot-frame-1.xpm" parrot parrot)) 'xpm nil :ascent 'center))
+    (setq parrot-static-image (parrot-create-frame parrot 1))
     (setq parrot-animation-frames (mapcar (lambda (id)
-                                                  (create-image (concat parrot-directory (format "img/%s/%s-parrot-frame-%d.xpm" parrot parrot id))
-                                                                'xpm nil :ascent 'center))
-                                                parrot-frame-list))))
+                                            (parrot-create-frame parrot id))
+                                          parrot-frame-list))))
+
+(defun parrot-sequence-length (parrot)
+  "Return length of the animation sequence for PARROT."
+  (cond ((string= parrot "default") 10)
+        ((string= parrot "confused") 26)
+        ((string= parrot "emacs") 10)
+        ((string= parrot "nyan") 10)
+        ((string= parrot "rotating") 13)
+        ((string= parrot "science") 10)
+        ((string= parrot "thumbsup") 12)
+        (t (error (format "Invalid parrot %s" parrot)))))
 
 (defun parrot-set-parrot-type (parrot)
   "Set the desired PARROT type in the mode line."
   (interactive (list (completing-read "Select parrot: "
-                                      '(default confused emacs nyan rotating science thumbsup))))
-  (let ((parrot-found t))
-    (cond ((string= parrot "default") (setq parrot-frame-list (number-sequence 1 10)))
-          ((string= parrot "confused") (setq parrot-frame-list (number-sequence 1 26)))
-          ((string= parrot "emacs") (setq parrot-frame-list (number-sequence 1 10)))
-          ((string= parrot "nyan") (setq parrot-frame-list (number-sequence 1 10)))
-          ((string= parrot "rotating") (setq parrot-frame-list (number-sequence 1 13)))
-          ((string= parrot "science") (setq parrot-frame-list (number-sequence 1 10)))
-          ((string= parrot "thumbsup") (setq parrot-frame-list (number-sequence 1 12)))
-          (t (setq parrot-found nil)))
-    (if (not parrot-found)
-        (message (format "Error: no %s parrot available" parrot))
+                                      '(default confused emacs nyan rotating science thumbsup) nil t)))
+  (setq parrot-frame-list (number-sequence 1 (parrot-sequence-length parrot)))
       (setq parrot-type parrot)
       (parrot-load-frames parrot)
       (run-at-time "0.5 seconds" nil #'parrot-start-animation)
-      (message (format "%s parrot selected" parrot)))))
+      (message (format "%s parrot selected" parrot)))
 
 (defvar parrot-current-frame 0)
 

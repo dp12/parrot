@@ -55,7 +55,17 @@
     (:rot ("uint8_t" "uint16_t" "uint32_t" "uint64_t"))
     (:rot ("1" "2" "3" "4" "5" "6" "7" "8" "9" "10"))
     (:rot ("1st" "2nd" "3rd" "4th" "5th" "6th" "7th" "8th" "9th" "10th"))
-    ))
+    )
+  "Dictionary of rotations to use.
+:rot is the list of rotations.
+:caps t (optional) provides the capitalized version of the rotations.
+:upcase t (optional) provides the capitalized version of the rotations.
+:lower nil (optional) excludes the lowercased version of the rotations.")
+
+(defvar pulse-flag nil
+  "Non-nil means highlighting should fade away with a timer.
+This is set to nil in parrot-rotate so that the highlight from the pulse library
+will persist until the next command.")
 
 (defcustom parrot-rotate-hunt-for-words t
   "If non-nil, search for replacements even if your cursor isn't on the word."
@@ -187,7 +197,7 @@ calling ‘parrot-rotate-prev’)."
   (interactive)
   (parrot-rotate-word-at-point #'parrot-rotate-next))
 
-(declare-function parrot-start-animation parrot)
+(declare-function parrot-start-animation "parrot.el")
 (defun parrot-rotate-word-at-point (rotate-func)
   "Rotates the word at point using ROTATE-FUNC."
   (let* ((start-cursor (point))
