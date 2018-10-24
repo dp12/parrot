@@ -1,5 +1,7 @@
 * [[file:https://cultofthepartyparrot.com/parrots/parrot.gif]] Parrot Mode - Viva la parrot revolution!
 
+[[https://stable.melpa.org/#/parrot][file:https://stable.melpa.org/packages/parrot-badge.svg]]
+[[https://melpa.org/#/parrot][file:https://melpa.org/packages/parrot-badge.svg]]
 [[https://travis-ci.org/dp12/parrot][file:https://api.travis-ci.org/dp12/parrot.png?branch=master]]
 [[http://www.gnu.org/licenses/gpl-3.0.html][file:http://img.shields.io/:license-gpl3-blue.svg]]
 
@@ -13,15 +15,24 @@ Polly want a word rotated? Now you can! Just use =parrot-rotate-next-word-at-poi
 [[file:parrot_in_action.gif]]
 
 ** Install
-Add the following to your emacs init file:
+Parrot is available on MELPA. You can install it with:
 #+begin_src emacs-lisp
-(add-to-list 'load-path "/path/to/parrot-dir/")
-(require 'parrot)
+M-x package-install parrot
 #+end_src
 
-To see the party parrot in the modeline, turn on parrot mode:
+If you use use-package:
 #+begin_src emacs-lisp
-(parrot-mode)
+  (use-package parrot
+    :config
+    (parrot-mode))
+#+end_src
+
+Or the old-fashioned way:
+#+begin_src emacs-lisp
+  (add-to-list 'load-path "/path/to/parrot-dir/")
+  (require 'parrot)
+  ;; To see the party parrot in the modeline, turn on parrot mode:
+  (parrot-mode)
 #+end_src
 
 Rotation function keybindings:
@@ -129,7 +140,7 @@ If you want the parrot to animate whenever you receive mail in mu4e, you can use
 (add-hook 'mu4e-index-updated-hook #'parrot-start-animation)
 #+end_src
 
-Parrot is integration-tested with ecukes and is licensed under the GPLv3.
+Parrot is integration-tested with ecukes [[https://github.com/ecukes/ecukes][🥒]] and is licensed under the GPLv3.
 
 This is my first emacs package, and as such, I'm happy to receive comments or suggestions about elisp coding, feature requests, or contributions. 
 
@@ -141,7 +152,9 @@ Thanks to [[https://github.com/francoislg][@francoislg]] for [[https://github.co
 
 Thanks to Aaron Hawley, from whom I borrowed a good deal of my rotation code. You can see his rotate text implementation on [[https://www.emacswiki.org/emacs/RotateText][emacswiki]].
 
-Thanks to [[https://github.com/rejeep][@rejeep]] for ecukes.
+Thanks to [[https://github.com/rejeep][@rejeep]] for ecukes, an excellent Cucumber-like testing framework.
+
+Thanks to [[https://github.com/DamienCassou][@DamienCassou]] for his detailed and thoughtful code review comments.
 
 A special thanks to [[https://github.com/TeMPOraL][@TeMPOral]], without which parrot wouldn't be possible. I heavily modified the source code of nyan-mode to create parrot spawn. All credit goes to him for paving the way to new heights of mode-line distraction. 
 
