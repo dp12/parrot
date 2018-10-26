@@ -2,7 +2,7 @@
 
 ;; Author: Daniel Ting <deep.paren.12@gmail.com>
 ;; URL: https://github.com/dp12/parrot.git
-;; Version: 1.0.0
+;; Version: 1.0.1
 ;; Package-Requires: ((emacs "24.1"))
 ;; Keywords: party, parrot, rotate, sirocco, kakapo, games
 
@@ -59,6 +59,10 @@
   :set (lambda (sym val)
          (set-default sym val)
          (parrot-refresh)))
+
+(defcustom parrot-click-hook nil
+  "Hook run after clicking on the parrot."
+  :type 'hook)
 
 (defvar parrot-animation-timer nil
   "Internal timer used for switching animation frames.")
@@ -191,7 +195,9 @@ stop."
 
 (defun parrot-add-click-handler (string)
   "Add a handler to STRING for animating the parrot when it is clicked."
-  (propertize string 'keymap `(keymap (mode-line keymap (down-mouse-1 . ,(lambda () (interactive) (parrot-start-animation)))))))
+  (propertize string 'keymap `(keymap (mode-line keymap (down-mouse-1 . ,(lambda () (interactive)
+                                                                           (parrot-start-animation)
+                                                                           (run-hooks 'parrot-click-hook)))))))
 
 (defun parrot-create ()
   "Generate the party parrot string."

@@ -55,8 +55,8 @@ parrot uses a dictionary list that defines word rotations. You can override the 
 #+begin_src emacs-lisp
   (setq parrot-rotate-dict
         '(
-          (:rot ("true" "false") :caps t :lower nil)
-          ;; => rotations are "True" "False"
+          (:rot ("alpha" "beta") :caps t :lower nil)
+          ;; => rotations are "Alpha" "Beta"
 
           (:rot ("snek" "snake" "stawp"))
           ;; => rotations are "snek" "snake" "stawp"
@@ -67,6 +67,7 @@ parrot uses a dictionary list that defines word rotations. You can override the 
           (:rot ("&" "|"))
           ;; => rotations are "&" "|"
 
+          ;; default dictionary starts here ('v')
           (:rot ("begin" "end") :caps t :upcase t)
           (:rot ("enable" "disable") :caps t :upcase t)
           (:rot ("enter" "exit") :caps t :upcase t)
@@ -80,6 +81,7 @@ parrot uses a dictionary list that defines word rotations. You can override the 
           (:rot ("on" "off") :caps t :upcase t)
           (:rot ("prev" "next"))
           (:rot ("start" "stop") :caps t :upcase t)
+          (:rot ("true" "false") :caps t :upcase t)
           (:rot ("&&" "||"))
           (:rot ("==" "!="))
           (:rot ("." "->"))
@@ -99,6 +101,13 @@ The following labels are provided for defining rotations in a dictionary entry:
 - If no labels are provided, the word list will default to lowercase rotations
 - Defining a word list for which there are no rotations will result in an error, e.g. =(:rot ("yes" "no") :lower nil)=.
 
+You can also append to the default dictionary with something like:
+#+begin_src emacs-lisp
+(setq parrot-rotate-dict
+      (append '((:rot ("hakuna" "matata"))
+                (:rot ("peeple" "sheeple")))
+              parrot-rotate-dict))
+#+end_src
 ** Party Parrots
 By default, after a rotation is performed, the selected parrot in the modeline will start rotating. You may select your desired parrot using:
 
@@ -133,13 +142,19 @@ It is recommended that you bind =(parrot-start-animation)= to a easily reachable
 - =parrot-rotate-start-char-invalid-regexp= - regexp used to determine if parrot shouldn't start a rotation.
 - =parrot-rotate-start-bound-regexp= - regexp used to find the start bound to search for rotations.
 - =parrot-rotate-end-bound-regexp= - regexp used to find the end bound to search for rotations.
+*** Customization
+Is parrot not rotating as much as you want it to? To truly become a parrot provocateur, you can make parrot rotate for many divers reasons by adding =parrot-start-animation= to different hooks.
 
-** Misc
-If you want the parrot to animate whenever you receive mail in mu4e, you can use:
+For example, if you want the parrot to animate whenever you receive mail in mu4e, you can try:
 #+begin_src emacs-lisp
 (add-hook 'mu4e-index-updated-hook #'parrot-start-animation)
 #+end_src
 
+You can also add functions to =parrot-click-hook= so they will run whenever you click on the parrot.
+#+begin_src emacs-lisp
+(add-hook 'parrot-click-hook 'flyspell-buffer)
+#+end_src
+** Misc
 Parrot is integration-tested with ecukes [[https://github.com/ecukes/ecukes][🥒]] and is licensed under the GPLv3.
 
 This is my first emacs package, and as such, I'm happy to receive comments or suggestions about elisp coding, feature requests, or contributions. 
