@@ -101,12 +101,11 @@ The following labels are provided for defining rotations in a dictionary entry:
 - If no labels are provided, the word list will default to lowercase rotations
 - Defining a word list for which there are no rotations will result in an error, e.g. =(:rot ("yes" "no") :lower nil)=.
 
-You can also append to the default dictionary with something like:
+You can also append to the default dictionary:
 #+begin_src emacs-lisp
-(setq parrot-rotate-dict
-      (append '((:rot ("hakuna" "matata"))
-                (:rot ("peeple" "sheeple")))
-              parrot-rotate-dict))
+(dolist (entry '((:rot ("hakuna" "matata"))
+                 (:rot ("peeple" "sheeple"))))
+  (add-to-list 'parrot-rotate-dict entry))
 #+end_src
 ** Party Parrots
 By default, after a rotation is performed, the selected parrot in the modeline will start rotating. You may select your desired parrot using:
@@ -143,7 +142,7 @@ It is recommended that you bind =(parrot-start-animation)= to a easily reachable
 - =parrot-rotate-start-bound-regexp= - regexp used to find the start bound to search for rotations.
 - =parrot-rotate-end-bound-regexp= - regexp used to find the end bound to search for rotations.
 *** Customization
-Is parrot not rotating as much as you want it to? To truly become a parrot provocateur, you can make parrot rotate for many divers reasons by adding =parrot-start-animation= to different hooks.
+Is parrot not rotating as much as you want it to? To truly become a parrot provocateur, you can make parrot rotate for many divers reasons by adding =parrot-start-animation= to various hooks.
 
 For example, if you want the parrot to animate whenever you receive mail in mu4e, you can try:
 #+begin_src emacs-lisp
