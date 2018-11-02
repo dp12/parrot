@@ -6,7 +6,7 @@
 [[http://www.gnu.org/licenses/gpl-3.0.html][file:http://img.shields.io/:license-gpl3-blue.svg]]
 
 ** Background
-We developers are an entitled bunch. Since the times of the Romans, programmers have demanded amenities such as bread and circuses, water slides, and multiple cursors. In fact, people of my generation seem to have a perverse desire to see poptart-clad kittens in their text editors. Most recently, I have heard loud and angry demands for parrots wearing science goggles.
+We developers are an entitled bunch. Since the times of the Romans, programmers have demanded amenities such as bread and circuses, water slides, and multiple cursors. In fact, people of my generation seem to have a perverse desire to see poptart-clad kittehs in their text editors. Most recently, I have heard loud and angry demands for parrots wearing science goggles.
 
 Unrealistic? Maybe, but it's 2018, and therefore parrots will now rotate on the screen using smooth circular motions, like those seen in kung fu.
 
@@ -108,7 +108,7 @@ You can also append to the default dictionary:
   (add-to-list 'parrot-rotate-dict entry))
 #+end_src
 ** Party Parrots
-By default, after a rotation is performed, the selected parrot in the modeline will start rotating. You may select your desired parrot using:
+By default, after a rotation is performed, the selected parrot in the modeline will start rotating. You may select your desired parrot interactively with =M-x parrot-set-parrot-type= or in your init file using:
 
 #+begin_src emacs-lisp
 (parrot-set-parrot-type 'science)
@@ -124,7 +124,7 @@ Like the wonders of the ancient world, parrot comes in 7 original flavors:
 | [[file:https://cultofthepartyparrot.com/parrots/scienceparrot.gif]]                                                                                                                                                           | science  |
 | [[file:https://cultofthepartyparrot.com/parrots/thumbsupparrot.gif]]                                                                                                                                                          | thumbsup |
 
-It is recommended that you bind =(parrot-start-animation)= to a easily reachable hotkey so you can command your parrot to rotate at will.
+Clicking on the parrot will cause it to rotate, but for mouse-less operation, it is recommended that you bind =(parrot-start-animation)= to a easily reachable hotkey so you can command your parrot to rotate at will.
 ** Customization
 *** Party parrot
 - =parrot-animation-frame-interval= - seconds between animation frames; can be a decimal number.
