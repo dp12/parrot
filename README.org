@@ -6,7 +6,7 @@
 [[http://www.gnu.org/licenses/gpl-3.0.html][file:http://img.shields.io/:license-gpl3-blue.svg]]
 
 ** Background
-We developers are an entitled bunch. Since the times of the Romans, programmers have demanded amenities such as bread and circuses, water slides, and multiple cursors. In fact, people of my generation seem to have a perverse desire to see poptart-clad kittehs in their text editors. Most recently, I have heard loud and angry demands for parrots wearing science goggles.
+We developers are an entitled bunch. Since the times of the Romans, programmers have demanded amenities such as bread and circuses, water slides, and multiple cursors. In fact, people of my generation seem to have a perverse desire to see poptart-clad kittens in their text editors. Most recently, I have heard loud and angry demands for parrots wearing science goggles.
 
 Unrealistic? Maybe, but it's 2018, and therefore parrots will now rotate on the screen using smooth circular motions, like those seen in kung fu.
 

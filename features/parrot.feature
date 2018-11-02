@@ -198,7 +198,7 @@ Feature: Rotate words
     Then parrot-rotate-next-word-at-point should throw an error
     Then the cursor should be between "hak" and "una"
 
-  Scenario: Test invalid dictionary with one rotation
+  Scenario: Test invalid dictionary with ambiguous rotation
     Given I set parrot-rotate-dict to ((:rot ("needle" "haystack")) (:rot ("needle" "noodle")))
     And I insert:
     """
