@@ -59,7 +59,7 @@
   "Dictionary of rotations to use.
 :rot is the list of rotations.
 :caps t (optional) provides the capitalized version of the rotations.
-:upcase t (optional) provides the capitalized version of the rotations.
+:upcase t (optional) provides the upcased version of the rotations.
 :lower nil (optional) excludes the lowercased version of the rotations.")
 
 (defvar pulse-flag nil
