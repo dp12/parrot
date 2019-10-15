@@ -2,7 +2,7 @@
 
 ;; Author: Daniel Ting <deep.paren.12@gmail.com>
 ;; URL: https://github.com/dp12/parrot.git
-;; Version: 1.0.1
+;; Version: 1.1.1
 ;; Package-Requires: ((emacs "24.1"))
 ;; Keywords: party, parrot, rotate, sirocco, kakapo, games
 
@@ -188,7 +188,7 @@ stop."
   (setq parrot-current-frame (% (+ 1 parrot-current-frame) (car (last parrot-frame-list))))
   (when (eq parrot-current-frame 0)
     (setq parrot-rotations (+ 1 parrot-rotations))
-    (when (>= parrot-rotations parrot-num-rotations)
+    (when (and parrot-num-rotations (>= parrot-rotations parrot-num-rotations))
       (parrot-stop-animation)))
   (force-mode-line-update))
 

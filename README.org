@@ -153,6 +153,13 @@ You can also add functions to =parrot-click-hook= so they will run whenever you 
 #+begin_src emacs-lisp
 (add-hook 'parrot-click-hook 'flyspell-buffer)
 #+end_src
+
+*NEW!*
+Want parrot to rotate forever? Set =parrot-num-rotations= to nil to get perfectly perpetual parrot.
+#+begin_src emacs-lisp
+(setq parrot-num-rotations nil)
+#+end_src
+
 ** Misc
 Parrot is integration-tested with ecukes [[https://github.com/ecukes/ecukes][🥒]] and is licensed under the GPLv3.
 

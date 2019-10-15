@@ -2,7 +2,7 @@
 
 ;; Author: Daniel Ting <deep.paren.12@gmail.com>
 ;; URL: https://github.com/dp12/parrot.git
-;; Version: 1.0.1
+;; Version: 1.1.1
 ;; Package-Requires: ((emacs "24.1"))
 ;; Keywords: party, parrot, rotate, sirocco, kakapo, convenience
 
