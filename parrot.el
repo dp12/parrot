@@ -65,6 +65,10 @@
 	 (set-default sym val)
 	 (parrot-refresh)))
 
+(defcustom parrot-pause-party nil
+  "If toggled, parrot stops party for one iteration."
+  :type 'boolean)
+
 (defcustom parrot-animation-frame-interval 0.045
   "Number of seconds between animation frames."
   :type 'float
@@ -93,26 +97,43 @@
 (defvar parrot-rotations 0
   "Counter of how many times the parrot has rotated.")
 
-(defun parrot-party ()
+(defun parrot-set-animation-frame-interval ()
   (interactive)
-  (cond (parrot-keep-partying
-	 (setq parrot-keep-partying nil
-	       parrot-animation-frame-interval parrot-temp-animation-frame-interval)
-	 (parrot-stop-animation))
-	(t (setq parrot-keep-partying t
-		 parrot-temp-animation-frame-interval parrot-animation-frame-interval
-		 parrot-animation-frame-interval parrot-persistant-animation-frame-interval)
-	   (parrot-start-animation))))
+  (setq parrot-temp-animation-frame-interval parrot-animation-frame-interval
+	parrot-animation-frame-interval parrot-persistant-animation-frame-interval))
 
-(defun parrot-start-animation ()
+(defun parrot-reset-animation-frame-interval ()
+  (interactive)
+  (setq parrot-animation-frame-interval parrot-temp-animation-frame-interval))
+
+(defun parrot-party ()
+  "You know you want it."
+  (interactive)
+  (cond ((and parrot-keep-partying parrot-pause-party)
+	 (parrot-reset-animation-frame-interval)
+	 (parrot-stop-animation))
+	(parrot-keep-partying
+	 (setq parrot-keep-partying nil)
+	 (parrot-reset-animation-frame-interval)
+	 (parrot-stop-animation))
+	(t (setq parrot-keep-partying t)
+	   (parrot-set-animation-frame-interval)
+	   (parrot-start-animation t))))
+
+(defun parrot-start-animation (&optional parrot-party-flag)
   "Start the parrot animation."
   (interactive)
-  (setq parrot-rotations 0) 
+  (setq parrot-rotations 0)  
+  ;; if toggled outside parrot-party, should pause parrot-party
+  (when (and parrot-keep-partying (not parrot-pause-party) (not parrot-party-flag))
+    (setq parrot-pause-party t)
+    (parrot-party)) 
   (when (not (and parrot-animate-parrot
                   parrot-animation-timer))
-    (setq parrot-animation-timer (run-at-time nil
-                                              parrot-animation-frame-interval
-                                              #'parrot-switch-anim-frame))
+    (setq parrot-animation-timer
+	  (run-at-time nil
+		       parrot-animation-frame-interval
+		       #'parrot-switch-anim-frame))
     (setq parrot-animate-parrot t)))
 
 (defun parrot-stop-animation ()
@@ -122,7 +143,13 @@
              parrot-animation-timer)
     (cancel-timer parrot-animation-timer)
     (setq parrot-animation-timer nil)
-    (setq parrot-animate-parrot nil)))
+    (setq parrot-animate-parrot nil)
+    ;; and reset it afterwards
+    (when (and parrot-keep-partying parrot-pause-party
+	       (>= parrot-rotations parrot-num-rotations))
+      (setq parrot-pause-party nil)
+      (parrot-set-animation-frame-interval)
+      (parrot-start-animation t))))
 
 (defcustom parrot-minimum-window-width 45
   "Determines the minimum width of the window, below which party parrot will not be displayed."
@@ -218,7 +245,7 @@ stop."
   (when (eq parrot-current-frame 0)
     (setq parrot-rotations (+ 1 parrot-rotations)) 
     (when (and parrot-num-rotations
-	       (not parrot-keep-partying)
+	       (or parrot-pause-party (not parrot-keep-partying))
 	       (>= parrot-rotations parrot-num-rotations))
       (parrot-stop-animation)))
   (force-mode-line-update))
