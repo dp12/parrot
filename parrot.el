@@ -76,8 +76,8 @@
          (set-default sym val)
          (parrot-refresh)))
 
-(defcustom parrot-persistant-animation-frame-interval 0.09
-  "Persistant animation can have a different frame interval."
+(defcustom parrot-persistent-animation-frame-interval 0.09
+  "Persistent animation can have a different frame interval."
   :type 'float
   :set (lambda (sym val)
 	 (set-default sym val) 
@@ -100,7 +100,7 @@
 (defun parrot-set-animation-frame-interval ()
   (interactive)
   (setq parrot-temp-animation-frame-interval parrot-animation-frame-interval
-	parrot-animation-frame-interval parrot-persistant-animation-frame-interval))
+	parrot-animation-frame-interval parrot-persistent-animation-frame-interval))
 
 (defun parrot-reset-animation-frame-interval ()
   (interactive)
