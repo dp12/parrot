@@ -114,15 +114,15 @@ By default, after a rotation is performed, the selected parrot in the modeline w
 (parrot-set-parrot-type 'science)
 #+end_src
 Like the wonders of the ancient world, parrot comes in 7 original flavors:
-| Parrot                                                                                                                                                                                                                        | Name     |
-|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------|
-| [[file:https://cultofthepartyparrot.com/parrots/parrot.gif]]                                                                                                                                                                  | default  |
-| [[file:https://cultofthepartyparrot.com/parrots/confusedparrot.gif]]                                                                                                                                                          | confused |
-| [[file:https://ppaas.herokuapp.com/partyparrot?overlay=https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/EmacsIcon.svg/1024px-EmacsIcon.svg.png&overlayWidth=15&overlayHeight=15&overlayOffsetX=11&overlayOffsetY=1]] | emacs    |
-| [[file:https://cultofthepartyparrot.com/guests/nyanparrot.gif]]                                                                                                                                                              | nyan     |
-| [[file:https://cultofthepartyparrot.com/parrots/rotatingparrot.gif]]                                                                                                                                                          | rotating |
-| [[file:https://cultofthepartyparrot.com/parrots/scienceparrot.gif]]                                                                                                                                                           | science  |
-| [[file:https://cultofthepartyparrot.com/parrots/thumbsupparrot.gif]]                                                                                                                                                          | thumbsup |
+| Parrot                                   | Name     |
+|------------------------------------------+----------|
+| [[file:https://i.imgur.com/53YCmpd.gif]] | default  |
+| [[file:https://i.imgur.com/svleFy1.gif]] | confused |
+| [[file:https://i.imgur.com/DSExpFD.gif]] | emacs    |
+| [[file:https://i.imgur.com/xpUahDq.gif]] | nyan     |
+| [[file:https://i.imgur.com/BnSpEwK.gif]] | rotating |
+| [[file:https://i.imgur.com/fMf23JR.gif]] | science  |
+| [[file:https://i.imgur.com/WmXn4wz.gif]] | thumbsup |
 
 Clicking on the parrot will cause it to rotate, but for mouse-less operation, it is recommended that you bind =(parrot-start-animation)= to a easily reachable hotkey so you can command your parrot to rotate at will.
 ** Customization
