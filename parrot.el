@@ -169,15 +169,16 @@ For example, an animation with a total of ten frames would have a
         ((string= parrot "thumbsup") 12)
         (t (error (format "Invalid parrot %s" parrot)))))
 
-(defun parrot-set-parrot-type (parrot)
+(defun parrot-set-parrot-type (parrot &optional silent)
   "Set the desired PARROT type in the mode line."
   (interactive (list (completing-read "Select parrot: "
                                       '(default confused emacs nyan rotating science thumbsup) nil t)))
   (setq parrot-frame-list (number-sequence 1 (parrot-sequence-length parrot)))
-      (setq parrot-type parrot)
-      (parrot-load-frames parrot)
+  (setq parrot-type parrot)
+  (parrot-load-frames parrot)
+  (unless silent
       (run-at-time "0.5 seconds" nil #'parrot-start-animation)
-      (message (format "%s parrot selected" parrot)))
+      (message (format "%s parrot selected" parrot))))
 
 (defvar parrot-current-frame 0)
 
