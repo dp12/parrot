@@ -60,6 +60,7 @@
 
 (defcustom parrot-animation-frame-interval 0.045
   "Number of seconds between animation frames."
+  :group 'parrot
   :type 'float
   :set (lambda (sym val)
          (set-default sym val)
@@ -67,6 +68,7 @@
 
 (defcustom parrot-click-hook nil
   "Hook run after clicking on the parrot."
+  :group 'parrot
   :type 'hook)
 
 (defvar parrot-animation-timer nil
@@ -97,6 +99,7 @@
 
 (defcustom parrot-minimum-window-width 45
   "Determines the minimum width of the window, below which party parrot will not be displayed."
+  :group 'parrot
   :type 'integer
   :set (lambda (sym val)
          (set-default sym val)
@@ -104,6 +107,7 @@
 
 (defcustom parrot-animate-parrot nil
   "If non-nil, parrot animation is enabled."
+  :group 'parrot
   :type '(choice (const :tag "Enabled" t)
                  (const :tag "Disabled" nil))
   :set (lambda (sym val)
@@ -115,6 +119,7 @@
 
 (defcustom parrot-spaces-before 0
   "Spaces of padding before parrot in mode line."
+  :group 'parrot
   :type 'integer
   :set (lambda (sym val)
          (set-default sym val)
@@ -123,12 +128,14 @@
 (defcustom parrot-spaces-after 0
   "Spaces of padding after parrot in the mode line."
   :type 'integer
+  :group 'parrot
   :set (lambda (sym val)
          (set-default sym val)
          (parrot-refresh)))
 
 (defcustom parrot-num-rotations 3
   "How many times party parrot will rotate."
+  :group 'parrot
   :type 'integer)
 
 (defvar parrot-frame-list (number-sequence 1 10)
