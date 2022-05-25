@@ -138,13 +138,22 @@
   :group 'parrot
   :type 'integer)
 
+(defcustom parrot-type "default"
+  "What kind of parrot, such as default or nyan.
+Also see `parrot-set-parrot-type'."
+  :group 'parrot
+  :type '(choice (const :tag "Default" "default")
+                 (const :tag "Confused" "confused")
+                 (const :tag "Emacs" "emacs")
+                 (const :tag "Nyan Cat" "nyan")
+                 (const :tag "Rotating" "rotating")
+                 (const :tag "Science" "science")
+                 (const :tag "Thumbsup" "thumbsup")))
+
 (defvar parrot-frame-list (number-sequence 1 10)
   "List of indices for the parrot animation frames.
 For example, an animation with a total of ten frames would have a
 `parrot-frame-list` of (1 2 3 4 5 6 7 8 9 10)")
-
-(defvar parrot-type nil
-  "The type of parrot selected, e.g. default or science.")
 
 (defvar parrot-static-image nil
   "The image shown when parrot is at rest, i.e. not rotating.")
