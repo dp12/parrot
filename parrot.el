@@ -86,6 +86,8 @@ If you are a `doom-modeline' user, see `doom-modeline-segment--parrot'")
 PERSIST will set `parrot-rotations' to -1 and cause infinite
 animation until `parrot-stop-animation' is called."
   (interactive)
+  (when (not (bound-and-true-p parrot-mode))
+    (parrot-mode))
   (parrot--show-parrot)
   (unless (eq parrot-rotations -1)
     (setq parrot-rotations (if persist -1 0)))
