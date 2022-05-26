@@ -23,6 +23,9 @@ M-x package-install parrot
 If you use use-package:
 #+begin_src emacs-lisp
   (use-package parrot
+    :custom
+    (parrot-num-rotations 10) ; See `customize-group' parrot
+    (parrot-type 'emacs)
     :config
     (parrot-mode))
 #+end_src
