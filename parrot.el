@@ -66,6 +66,10 @@
          (set-default sym val)
          (parrot-refresh)))
 
+(defvar parrot--visible nil
+  "Controls `parrot-create' output.
+If you are a `doom-modeline' user, see `doom-modeline-segment--parrot'")
+
 (defcustom parrot-click-hook nil
   "Hook run after clicking on the parrot."
   :group 'parrot
@@ -77,10 +81,14 @@
 (defvar parrot-rotations 0
   "Counter of how many times the parrot has rotated.")
 
-(defun parrot-start-animation ()
-  "Start the parrot animation."
+(defun parrot-start-animation (&optional persist)
+  "Start the parrot animation.
+PERSIST will set `parrot-rotations' to -1 and cause infinite
+animation until `parrot-stop-animation' is called."
   (interactive)
-  (setq parrot-rotations 0)
+  (parrot--show-parrot)
+  (unless (eq parrot-rotations -1)
+    (setq parrot-rotations (if persist -1 0)))
   (when (not (and parrot-animate-parrot
                   parrot-animation-timer))
     (setq parrot-animation-timer (run-at-time nil
@@ -95,7 +103,10 @@
              parrot-animation-timer)
     (cancel-timer parrot-animation-timer)
     (setq parrot-animation-timer nil)
-    (setq parrot-animate-parrot nil)))
+    (setq parrot-animate-parrot nil)  ;; TODO redundant state
+    (setq parrot-rotations 0))
+  (when parrot-hide-when-not-animating
+    (parrot--remove-parrot)))
 
 (defcustom parrot-minimum-window-width 45
   "Determines the minimum width of the window, below which party parrot will not be displayed."
@@ -116,6 +127,16 @@
              (parrot-start-animation)
            (parrot-stop-animation))
          (parrot-refresh)))
+
+(defcustom parrot-hide-when-not-animating nil
+  "If non-nil, parrot will be hidden when not animating."
+  :group 'parrot
+  :type 'boolean
+  :set (lambda (sym val)
+         (set-default sym val)
+         (when (bound-and-true-p parrot-mode)
+             (if  val (parrot--show-parrot)
+               (parrot--remove-parrot)))))
 
 (defcustom parrot-spaces-before 0
   "Spaces of padding before parrot in mode line."
@@ -204,7 +225,8 @@ If the parrot has already rotated for `parrot-num-rotations', the animation will
 stop."
   (setq parrot-current-frame (% (+ 1 parrot-current-frame) (car (last parrot-frame-list))))
   (when (eq parrot-current-frame 0)
-    (setq parrot-rotations (+ 1 parrot-rotations))
+    (unless (eq -1 parrot-rotations)
+      (setq parrot-rotations (+ 1 parrot-rotations)))
     (when (and parrot-num-rotations (>= parrot-rotations parrot-num-rotations))
       (parrot-stop-animation)))
   (force-mode-line-update))
@@ -220,18 +242,41 @@ stop."
   (propertize string 'keymap `(keymap (mode-line keymap (down-mouse-1 . ,(lambda () (interactive)
                                                                            (parrot-start-animation)
                                                                            (run-hooks 'parrot-click-hook)))))))
-
 (defun parrot-create ()
   "Generate the party parrot string."
-  (if (< (window-width) parrot-minimum-window-width)
+  (if (or (not parrot--visible)
+          (< (window-width) parrot-minimum-window-width))
       ""                                ; disabled for too small windows
     (let ((parrot-string (make-string parrot-spaces-before ?\s)))
       (setq parrot-string (concat parrot-string (parrot-add-click-handler
-                                                             (propertize "-" 'display (parrot-get-anim-frame)))
-                                        (make-string parrot-spaces-after ?\s)))
+                                                 (propertize "-" 'display (parrot-get-anim-frame)))
+                                  (make-string parrot-spaces-after ?\s)))
       (propertize parrot-string 'help-echo parrot-modeline-help-string))))
 
 (defvar parrot-old-cdr-mode-line-position nil)
+
+(defun parrot--show-parrot ()
+  "Add parrot to the modeline.
+If you are a `doom-modeline' user, see
+`doom-modeline-segment--parrot'.  Doom performs some overrides,
+using `parrot-create' directly whenever `parrot-mode' is active."
+  (unless parrot--visible
+    (progn
+      (unless parrot-old-cdr-mode-line-position
+        (setq parrot-old-cdr-mode-line-position (cdr mode-line-position))
+        (setcdr mode-line-position (cons '(:eval (list (parrot-create)))
+                                         (cdr parrot-old-cdr-mode-line-position))))
+      (setf parrot--visible t)
+      (force-mode-line-update))))
+
+(defun parrot--remove-parrot ()
+  "Remove parrot from modeline."
+  (when parrot--visible
+    (progn
+      (setcdr mode-line-position nil)
+      (setf parrot-old-cdr-mode-line-position nil)
+      (setf parrot--visible nil)
+      (force-mode-line-update))))
 
 ;;;###autoload
 (define-minor-mode parrot-mode
@@ -241,12 +286,11 @@ You can customize this minor mode, see option `parrot-mode'."
   :require 'parrot
   (if parrot-mode
       (progn
-        (unless parrot-type (parrot-set-parrot-type 'default))
-        (unless parrot-old-cdr-mode-line-position
-          (setq parrot-old-cdr-mode-line-position (cdr mode-line-position)))
-        (setcdr mode-line-position (cons '(:eval (list (parrot-create)))
-                                         (cdr parrot-old-cdr-mode-line-position))))
-    (setcdr mode-line-position parrot-old-cdr-mode-line-position)))
+        (unless parrot-hide-when-not-animating
+          (parrot--show-parrot)))
+    (progn
+      (parrot-stop-animation)
+      (parrot--remove-parrot))))
 
 (provide 'parrot)
 
