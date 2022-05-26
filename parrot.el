@@ -41,6 +41,7 @@
 ;;; Code:
 
 (require 'parrot-rotate)
+(require 'parrot-progress)
 
 (defconst parrot-directory (file-name-directory (or load-file-name buffer-file-name)))
 (defconst parrot-modeline-help-string "mouse-1: Rotate with parrot!")
@@ -296,10 +297,14 @@ You can customize this minor mode, see option `parrot-mode'."
   (if parrot-mode
       (progn
         (unless parrot-hide-when-not-animating
-          (parrot--show-parrot)))
+          (parrot--show-parrot))
+        (parrot--maybe-add-todo-hook)
+        (parrot--maybe-advise-magit-push))
     (progn
       (parrot-stop-animation)
-      (parrot--remove-parrot))))
+      (parrot--remove-parrot)
+      (parrot--maybe-add-todo-hook)
+      (parrot--maybe-advise-magit-push))))
 
 (provide 'parrot)
 
