@@ -99,16 +99,20 @@ animation until `parrot-stop-animation' is called."
     (setq parrot-animate-parrot t)))
 
 (defun parrot-stop-animation ()
-  "Stop the parrot animation."
+  "Stop the parrot animation.
+If a persistent animation is being broken, animation will
+continue for `parrot-num-roatiations'"
   (interactive)
-  (when (and parrot-animate-parrot
-             parrot-animation-timer)
-    (cancel-timer parrot-animation-timer)
-    (setq parrot-animation-timer nil)
-    (setq parrot-animate-parrot nil)  ;; TODO redundant state
-    (setq parrot-rotations 0))
-  (when parrot-hide-when-not-animating
-    (parrot--remove-parrot)))
+  (if (eq parrot-rotations -1)
+      (setq parrot-rotations 0)
+    (when (and parrot-animate-parrot
+               parrot-animation-timer)
+      (cancel-timer parrot-animation-timer)
+      (setq parrot-animation-timer nil)
+      (setq parrot-animate-parrot nil)  ;; TODO redundant state
+      (setq parrot-rotations 0))
+    (when parrot-hide-when-not-animating
+      (parrot--remove-parrot))))
 
 (defcustom parrot-minimum-window-width 45
   "Determines the minimum width of the window, below which party parrot will not be displayed."
