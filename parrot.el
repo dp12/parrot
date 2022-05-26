@@ -165,17 +165,23 @@ continue for `parrot-num-roatiations'"
   :group 'parrot
   :type 'integer)
 
-(defcustom parrot-type "default"
+(defcustom parrot-type 'default
   "What kind of parrot, such as default or nyan.
 Also see `parrot-set-parrot-type'."
   :group 'parrot
-  :type '(choice (const :tag "Default" "default")
-                 (const :tag "Confused" "confused")
-                 (const :tag "Emacs" "emacs")
-                 (const :tag "Nyan Cat" "nyan")
-                 (const :tag "Rotating" "rotating")
-                 (const :tag "Science" "science")
-                 (const :tag "Thumbsup" "thumbsup")))
+  :type '(choice (const :tag "Default" default)
+                 (const :tag "Confused" confused)
+                 (const :tag "Emacs" emacs)
+                 (const :tag "Nyan Cat" nyan)
+                 (const :tag "Rotating" rotating)
+                 (const :tag "Science" science)
+                 (const :tag "Thumbsup" thumbsup))
+  :set (lambda (sym val)
+         (set-default sym val)
+         (setq parrot-frame-list (number-sequence 1 (parrot-sequence-length val)))
+         (parrot-load-frames val)
+         (run-at-time "0.5 seconds" nil #'parrot-start-animation)
+         (message (format "%s parrot selected" val))))
 
 (defvar parrot-frame-list (number-sequence 1 10)
   "List of indices for the parrot animation frames.
@@ -213,15 +219,12 @@ For example, an animation with a total of ten frames would have a
         (t (error (format "Invalid parrot %s" parrot)))))
 
 (defun parrot-set-parrot-type (parrot &optional silent)
-  "Set the desired PARROT type in the mode line."
-  (interactive (list (completing-read "Select parrot: "
-                                      '(default confused emacs nyan rotating science thumbsup) nil t)))
-  (setq parrot-frame-list (number-sequence 1 (parrot-sequence-length parrot)))
-  (setq parrot-type parrot)
-  (parrot-load-frames parrot)
-  (unless silent
-      (run-at-time "0.5 seconds" nil #'parrot-start-animation)
-      (message (format "%s parrot selected" parrot))))
+  "Set the desired PARROT type in the mode line.
+SILENT will not show the parrot even if settings enable it."
+  (interactive (list
+                (completing-read "Select parrot: "
+                                 '(default confused emacs nyan rotating science thumbsup) nil t)))
+  (custom-set-variables `(parrot-type ,parrot)))
 
 (defvar parrot-current-frame 0)
 
