@@ -67,35 +67,39 @@
 This is set to nil in parrot-rotate so that the highlight from the pulse library
 will persist until the next command.")
 
+(defgroup parrot-rotate nil
+  "Customization group for `parrot-mode'."
+  :group 'parrot-rotate)
+
 (defcustom parrot-rotate-hunt-for-words t
   "If non-nil, search for replacements even if your cursor isn't on the word."
   :type '(choice (const :tag "Enabled" t)
                  (const :tag "Disabled" nil))
-  :group 'parrot)
+  :group 'parrot-rotate)
 
 (defcustom parrot-rotate-jump-to-word-after-hunt t
   "If non-nil, jump to rotation after replacement on word not under the cursor.
 It has no effect if ‘parrot-rotate-hunt-for-words’ is nil."
   :type '(choice (const :tag "Enabled" t)
                  (const :tag "Disabled" nil))
-  :group 'parrot)
+  :group 'parrot-rotate)
 
 (defcustom parrot-rotate-animate-after-rotation t
   "If non-nil, the party parrot will animate when a replacement is made."
   :type '(choice (const :tag "Enabled" t)
                  (const :tag "Disabled" nil))
-  :group 'parrot)
+  :group 'parrot-rotate)
 
 (defcustom parrot-rotate-highlight-after-rotation t
   "If non-nil, replaced text will be highlighted after a rotation."
   :type '(choice (const :tag "Enabled" t)
                  (const :tag "Disabled" nil))
-  :group 'parrot)
+  :group 'parrot-rotate)
 
 (defcustom parrot-rotate-start-char-invalid-regexp "[[:blank:]]"
   "Regex to check if character under cursor is invalid for starting a rotation."
   :type 'string
-  :group 'parrot)
+  :group 'parrot-rotate)
 
 (defcustom parrot-rotate-start-bound-regexp "[[:space:]]"
   "Regex to search backward for text rotation start point.
@@ -104,7 +108,7 @@ part of the text rotation scope.  By default, it is set to [[:space:]], so
 parrot will search a whitespace-delimited word for potential rotations.  You can
 change it to [\]\[[:space:](){}<>] to treat braces/brackets as boundaries."
   :type 'string
-  :group 'parrot)
+  :group 'parrot-rotate)
 
 (defcustom parrot-rotate-end-bound-regexp "[[:space:]]"
   "Regex to search forward for text rotation end point.
@@ -113,12 +117,12 @@ part of the text rotation scope.  By default, it is set to [[:space:]], so
 parrot will search a whitespace-delimited word for potential rotations.  You can
 change it to [\]\[[:space:](){}<>] to treat braces/brackets as boundaries."
   :type 'string
-  :group 'parrot)
+  :group 'parrot-rotate)
 
 (defface parrot-rotate-rotation-highlight-face
   '((t (:inherit highlight)))
   "Face used for highlighting rotations."
-  :group 'parrot)
+  :group 'parrot-rotate)
 
 (defun parrot-rotate-convert-rotations-to-regexp (rotations)
   "Return regular expressions for all entries in ROTATIONS.
