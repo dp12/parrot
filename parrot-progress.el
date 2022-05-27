@@ -79,7 +79,7 @@ ARGS is args for `magit-run-git-async'"
 (defun parrot--maybe-advise-magit-push ()
   "Update advice for magit push.
 See `parrot-party-on-magit-push'."
-  (if (and (bound-and-true-p parrot-mode)
+  (if (and parrot-mode
            parrot-party-on-magit-push)
       (advice-add 'magit-run-git-async :around #'parrot--magit-push-filter)
     (advice-remove 'magit-run-git-async #'parrot--magit-push-filter)))
@@ -90,7 +90,7 @@ See `parrot-party-on-magit-push'."
   :type 'boolean
   :set (lambda (sym val)
          (set-default sym val)
-         (when (bound-and-true-p parrot-mode)
+         (when (and (featurep 'parrot) parrot-mode)
            (parrot--maybe-advise-magit-push))))
 
 (defun parrot--todo-party ()
@@ -102,8 +102,7 @@ Use `party-on-org-todo-states' to control partying or not."
 (defun parrot--maybe-add-todo-hook ()
   "Update hook for org mode todos.
 See `parrot-party-on-org-todo-states'."
-  (if (and (bound-and-true-p parrot-mode)
-           parrot-party-on-org-todo-states)
+  (if (and parrot-party-on-org-todo-states parrot-mode)
       (add-hook 'org-after-todo-state-change-hook
                 #'parrot--todo-party)
     (remove-hook 'org-after-todo-state-change-hook
@@ -117,7 +116,8 @@ is called.  See `org-todo-keywords'."
   :type '(repeat string)
   :set (lambda (sym val)
          (set-default sym val)
-         (parrot--maybe-add-todo-hook)))
+         (when (and (featurep 'parrot) parrot-mode)
+           (parrot--maybe-add-todo-hook))))
 
 (provide 'parrot-progress)
 
