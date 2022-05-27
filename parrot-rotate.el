@@ -292,7 +292,7 @@ calling ‘parrot-rotate-prev’)."
                       (pulse-flag nil))
                   (pulse-momentary-highlight-region replace-start replace-end 'parrot-rotate-rotation-highlight-face)))
               (when parrot-rotate-animate-after-rotation
-                (parrot-start-animation)))
+                (parrot-start-animation nil t)))
           (error "No parrot matches found"))))
     (goto-char end-cursor)))
 

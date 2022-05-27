@@ -37,7 +37,7 @@
   "Start a persistent parrot animation.
 Use `parrot-progress-finished' to stop."
   (interactive)
-  (parrot-start-animation t))
+  (parrot-start-animation t t))
 
 (declare-function parrot-stop-animation "parrot.el")
 (defun parrot-progress-finished (&rest _args)
