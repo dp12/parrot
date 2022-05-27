@@ -59,6 +59,17 @@
     (when (bound-and-true-p parrot-mode)
       (force-mode-line-update))))
 
+(defun parrot-sequence-length (parrot)
+  "Return length of the animation sequence for PARROT."
+  (cond ((string= parrot "default") 10)
+        ((string= parrot "confused") 26)
+        ((string= parrot "emacs") 10)
+        ((string= parrot "nyan") 10)
+        ((string= parrot "rotating") 13)
+        ((string= parrot "science") 10)
+        ((string= parrot "thumbsup") 12)
+        (t (error (format "Invalid parrot %s" parrot)))))
+
 (defcustom parrot-animation-frame-interval 0.045
   "Number of seconds between animation frames."
   :group 'parrot
@@ -66,10 +77,6 @@
   :set (lambda (sym val)
          (set-default sym val)
          (parrot-refresh)))
-
-(defvar parrot--visible nil
-  "Controls `parrot-create' output.
-If you are a `doom-modeline' user, see `doom-modeline-segment--parrot'")
 
 (defcustom parrot-click-hook nil
   "Hook run after clicking on the parrot."
@@ -81,6 +88,34 @@ If you are a `doom-modeline' user, see `doom-modeline-segment--parrot'")
 
 (defvar parrot-rotations 0
   "Counter of how many times the parrot has rotated.")
+
+(defvar parrot-old-cdr-mode-line-position nil)
+(defvar parrot--visible nil
+  "Controls `parrot-create' output.
+If you are a `doom-modeline' user, see `doom-modeline-segment--parrot'")
+
+(defun parrot--show-parrot ()
+  "Add parrot to the modeline.
+If you are a `doom-modeline' user, see
+`doom-modeline-segment--parrot'.  Doom performs some overrides,
+using `parrot-create' directly whenever `parrot-mode' is active."
+  (unless parrot--visible
+    (progn
+      (unless parrot-old-cdr-mode-line-position
+        (setq parrot-old-cdr-mode-line-position (cdr mode-line-position))
+        (setcdr mode-line-position (cons '(:eval (list (parrot-create)))
+                                         (cdr parrot-old-cdr-mode-line-position))))
+      (setf parrot--visible t)
+      (force-mode-line-update))))
+
+(defun parrot--remove-parrot ()
+  "Remove parrot from modeline."
+  (when parrot--visible
+    (progn
+      (setcdr mode-line-position nil)
+      (setf parrot-old-cdr-mode-line-position nil)
+      (setf parrot--visible nil)
+      (force-mode-line-update))))
 
 (defun parrot-start-animation (&optional persist)
   "Start the parrot animation.
@@ -98,6 +133,16 @@ animation until `parrot-stop-animation' is called."
                                               parrot-animation-frame-interval
                                               #'parrot-switch-anim-frame))
     (setq parrot-animate-parrot t)))
+
+(defcustom parrot-hide-when-not-animating nil
+  "If non-nil, parrot will be hidden when not animating."
+  :group 'parrot
+  :type 'boolean
+  :set (lambda (sym val)
+         (set-default sym val)
+         (when (bound-and-true-p parrot-mode)
+             (if  val (parrot--show-parrot)
+               (parrot--remove-parrot)))))
 
 (defun parrot-stop-animation ()
   "Stop the parrot animation.
@@ -135,16 +180,6 @@ continue for `parrot-num-roatiations'"
            (parrot-stop-animation))
          (parrot-refresh)))
 
-(defcustom parrot-hide-when-not-animating nil
-  "If non-nil, parrot will be hidden when not animating."
-  :group 'parrot
-  :type 'boolean
-  :set (lambda (sym val)
-         (set-default sym val)
-         (when (bound-and-true-p parrot-mode)
-             (if  val (parrot--show-parrot)
-               (parrot--remove-parrot)))))
-
 (defcustom parrot-spaces-before 0
   "Spaces of padding before parrot in mode line."
   :group 'parrot
@@ -165,6 +200,19 @@ continue for `parrot-num-roatiations'"
   "How many times party parrot will rotate."
   :group 'parrot
   :type 'integer)
+
+(defun parrot-create-frame (parrot id)
+  "Create image for frame with parrot type PARROT and frame id ID."
+  (create-image (concat parrot-directory
+                        (format "img/%s/%s-parrot-frame-%d.xpm" parrot parrot id)) 'xpm nil :ascent 'center))
+
+(defun parrot-load-frames (parrot)
+  "Load the images for the selected PARROT."
+  (when (image-type-available-p 'xpm)
+    (setq parrot-static-image (parrot-create-frame parrot 1))
+    (setq parrot-animation-frames (mapcar (lambda (id)
+                                            (parrot-create-frame parrot id))
+                                          parrot-frame-list))))
 
 (defcustom parrot-type 'default
   "What kind of parrot, such as default or nyan.
@@ -194,30 +242,6 @@ For example, an animation with a total of ten frames would have a
 
 (defvar parrot-animation-frames nil
   "A list of the animation frames for the current parrot.")
-
-(defun parrot-create-frame (parrot id)
-  "Create image for frame with parrot type PARROT and frame id ID."
-  (create-image (concat parrot-directory
-                        (format "img/%s/%s-parrot-frame-%d.xpm" parrot parrot id)) 'xpm nil :ascent 'center))
-
-(defun parrot-load-frames (parrot)
-  "Load the images for the selected PARROT."
-  (when (image-type-available-p 'xpm)
-    (setq parrot-static-image (parrot-create-frame parrot 1))
-    (setq parrot-animation-frames (mapcar (lambda (id)
-                                            (parrot-create-frame parrot id))
-                                          parrot-frame-list))))
-
-(defun parrot-sequence-length (parrot)
-  "Return length of the animation sequence for PARROT."
-  (cond ((string= parrot "default") 10)
-        ((string= parrot "confused") 26)
-        ((string= parrot "emacs") 10)
-        ((string= parrot "nyan") 10)
-        ((string= parrot "rotating") 13)
-        ((string= parrot "science") 10)
-        ((string= parrot "thumbsup") 12)
-        (t (error (format "Invalid parrot %s" parrot)))))
 
 (defun parrot-set-parrot-type (parrot &optional silent)
   "Set the desired PARROT type in the mode line.
@@ -262,31 +286,6 @@ stop."
                                                  (propertize "-" 'display (parrot-get-anim-frame)))
                                   (make-string parrot-spaces-after ?\s)))
       (propertize parrot-string 'help-echo parrot-modeline-help-string))))
-
-(defvar parrot-old-cdr-mode-line-position nil)
-
-(defun parrot--show-parrot ()
-  "Add parrot to the modeline.
-If you are a `doom-modeline' user, see
-`doom-modeline-segment--parrot'.  Doom performs some overrides,
-using `parrot-create' directly whenever `parrot-mode' is active."
-  (unless parrot--visible
-    (progn
-      (unless parrot-old-cdr-mode-line-position
-        (setq parrot-old-cdr-mode-line-position (cdr mode-line-position))
-        (setcdr mode-line-position (cons '(:eval (list (parrot-create)))
-                                         (cdr parrot-old-cdr-mode-line-position))))
-      (setf parrot--visible t)
-      (force-mode-line-update))))
-
-(defun parrot--remove-parrot ()
-  "Remove parrot from modeline."
-  (when parrot--visible
-    (progn
-      (setcdr mode-line-position nil)
-      (setf parrot-old-cdr-mode-line-position nil)
-      (setf parrot--visible nil)
-      (force-mode-line-update))))
 
 ;;;###autoload
 (define-minor-mode parrot-mode

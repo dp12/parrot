@@ -30,12 +30,16 @@
 
 ;;; Code:
 
+(require 'magit)
+
+(declare-function parrot-start-animation "parrot.el")
 (defun parrot-progress ()
   "Start a persistent parrot animation.
 Use `parrot-progress-finished' to stop."
   (interactive)
   (parrot-start-animation t))
 
+(declare-function parrot-stop-animation "parrot.el")
 (defun parrot-progress-finished (&rest _args)
   "Stop persistent progress animation."
   (interactive)
