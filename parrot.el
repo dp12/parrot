@@ -109,10 +109,8 @@ feedback, which could also animate depending on settings."
     (if (not parrot-mode)
         (parrot-mode 1)
       (parrot--load-frames parrot-type))
-    (if (and parrot-animate
-             (not
-              (or (eq parrot-animate 'no-animation)
-                  maybe-static)))
+    (if (or (and maybe-static (eq parrot-animate 'hide-static))
+            (not maybe-static))
         (parrot-start-animation)
       (force-mode-line-update))))
 
@@ -232,21 +230,24 @@ that want to control the position of the parrot.")
          (parrot--refresh)))
 
 (define-obsolete-variable-alias 'parrot-animate-parrot 'parrot-animate)
-(defcustom parrot-animate t
+(defcustom parrot-animate 'animate
   "Animation and show/hide preference.
-Possible values: non-nil to always show the parrot, animating or
-not.  `'no-animation' to show the parrot but never animate
-it.  `'hide-static' to only show the parrot when not animating.
+Possible values: non-nil or 'animate to always show the parrot,
+animating or not.  `'no-animation' to show the parrot but never
+animate it.  `'hide-static' to only show the parrot when not
+animating.
 
 nil will rever to the legacy `parrot-animate-parrot' no animation
 behavior, the same as `'no-animation'."
   :group 'parrot
-  :type '(choice (const :tag "Always show" t)
-                 (const :tag "No animation" 'no-animation)
-                 (const :tag "Hide when not animating" 'hide-static))
+  :type '(choice (const :tag "Always show" animate)
+                 (const :tag "No animation" no-animation)
+                 (const :tag "Hide when not animating" hide-static))
   :set (lambda (sym val)
          ;; map legacy nil value to 'no-animation
-         (let ((val (if (eq val nil) 'no-animation val)))
+         ;; map legacy t value to 'animate
+         (let* ((val (if (eq val nil) 'no-animation val))
+                (val (if (eq val t) 'animation val)))
            (set-default sym val)
            (parrot--refresh))))
 
@@ -258,7 +259,7 @@ behavior, the same as `'no-animation'."
                (set-default sym val)
                (parrot--refresh)))
 
-(defcustom parrot-type 'default ;; TODO get initialization coordinated with mode
+(defcustom parrot-type 'default
   "What kind of parrot, such as default or nyan.
 Also see `parrot-set-parrot-type'."
   :group 'parrot
@@ -315,7 +316,7 @@ continue for `parrot-num-roatiations'"
       (cancel-timer parrot--animation-timer)
       (setq parrot--animation-timer nil)
       (setq parrot--rotations 0))
-    (unless (memq parrot-animate '(t 'no-animation))
+    (when (eq parrot-animate 'hide-static)
       (parrot--remove-parrot))))
 
 (defun parrot-set-parrot-type (parrot &optional silent)
@@ -343,7 +344,7 @@ You can customize this minor mode, see `customize-group' `parrot'."
         (parrot--load-frames parrot-type)
         (if parrot-animate-on-load
             (parrot-start-animation nil t)
-          (if (memq parrot-animate '(t no-animation))
+          (if (memq parrot-animate '(animate no-animation))
             (parrot--show-parrot)))
         (parrot--maybe-add-todo-hook)
         (parrot--maybe-advise-magit-push))
