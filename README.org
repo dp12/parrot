@@ -26,6 +26,7 @@ If you use use-package:
     :custom
     (parrot-num-rotations 10) ; See `customize-group' parrot
     (parrot-type 'emacs)
+    (parrot-party-on-magit-push t)
     :config
     (parrot-mode))
 #+end_src
@@ -132,7 +133,8 @@ Clicking on the parrot will cause it to rotate, but for mouse-less operation, it
 *** Party parrot
 - =parrot-animation-frame-interval= - seconds between animation frames; can be a decimal number.
 - =parrot-minimum-window-width= - minimum width of the window, below which party parrot mode will be disabled.
-- =parrot-animate-parrot= - =t= to enable parrot animation, =nil= for a static image.
+- =parrot-animate - ='animate= to enable parrot animation, ='no-animation= for a static image, ='hide-static= to only show while animating.
+- =parrot-animate-on-load= - animate when mode started no matter other settings.
 - =parrot-spaces-before= - number of spaces of padding before the parrot.
 - =parrot-spaces-after= - number of spaces of padding after the parrot.
 - =parrot-num-rotations= - number of times the parrot will cycle through its gif.
@@ -144,6 +146,9 @@ Clicking on the parrot will cause it to rotate, but for mouse-less operation, it
 - =parrot-rotate-start-char-invalid-regexp= - regexp used to determine if parrot shouldn't start a rotation.
 - =parrot-rotate-start-bound-regexp= - regexp used to find the start bound to search for rotations.
 - =parrot-rotate-end-bound-regexp= - regexp used to find the end bound to search for rotations.
+*** Processes and Events
+- =parrot-party-on-magit-push= - =t= to animate the parrot during git pushes.
+- =parrot-party-on-org-todo-states= - ='("DONE")= to animate the parrot when org todo state is changed to =DONE=.  Add your other finished states to the list for animating other events.
 *** Customization
 Is parrot not rotating as much as you want it to? To truly become a parrot provocateur, you can make parrot rotate for many divers reasons by adding =parrot-start-animation= to various hooks.
 
@@ -162,6 +167,13 @@ Want parrot to rotate forever? Set =parrot-num-rotations= to nil to get perfectl
 #+begin_src emacs-lisp
 (setq parrot-num-rotations nil)
 #+end_src
+
+Calling start animation with t will also run forever until you run =parrot-stop-animation=, and then will stop after =parrot-num-rotations= more.
+#+begin_src emacs-lisp
+(parrot-start-animation t)
+#+end_src
+
+Check out the =parrot--magit-push-filter= for an example of how to advise a function that returns a process to add an extra sentinel to that process, allowing you to party on any process!
 
 ** Misc
 Parrot is integration-tested with ecukes [[https://github.com/ecukes/ecukes][🥒]] and is licensed under the GPLv3.
