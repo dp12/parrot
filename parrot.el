@@ -1,8 +1,8 @@
-;;; parrot.el --- Party Parrot rotates gracefully in mode-line.  -*- lexical-binding: t; -*-
+;;; parrot.el --- Party Parrot rotates gracefully in the mode-line  -*- lexical-binding: t; -*-
 
 ;; Author: Daniel Ting <deep.paren.12@gmail.com>
 ;; URL: https://github.com/dp12/parrot.git
-;; Version: 1.1.1
+;; Version: 1.2.0
 ;; Package-Requires: ((emacs "24.1"))
 ;; Keywords: party, parrot, rotate, sirocco, kakapo, games
 
@@ -44,9 +44,8 @@
 
 (defconst parrot-directory (file-name-directory (or load-file-name buffer-file-name)))
 (defconst parrot-modeline-help-string "mouse-1: Rotate with parrot!")
-
-;; ('v') (*'v') ('V'*) ('v'*)
-;; ('v') ('V') ('>') ('^') ('<') ('V') ('v')
+(defconst parrot-ascii-animation-frames '("(*'v')" "(*'V')" "(*'<')"
+    "(*'^')" "(*'>')" "(*'V')" "(*'v')" "(*'V')" "(*'v')" "('v'*)" "('v')"))
 
 (defgroup parrot nil
   "Customization group for `parrot-mode'."
@@ -65,15 +64,52 @@
          (set-default sym val)
          (parrot-refresh)))
 
+(defcustom parrot-hook-animation-frame-interval 0.045
+  "Number of seconds between animation frames when a hook is fired."
+  :type 'float
+  :set (lambda (sym val)
+         (set-default sym val)
+         (parrot-refresh)))
+
+(defcustom parrot-ascii-animation-frame-interval 0.2
+  "Number of seconds between animation frames for ascii parrot."
+  :type 'float
+  :set (lambda (sym val)
+         (set-default sym val)
+         (parrot-refresh)))
+
+(defcustom parrot-ascii-hook-animation-frame-interval 0.2
+  "Number of seconds between hook animation frames for ascii parrot."
+  :type 'float
+  :set (lambda (sym val)
+         (set-default sym val)
+         (parrot-refresh)))
+
 (defcustom parrot-click-hook nil
   "Hook run after clicking on the parrot."
   :type 'hook)
+
+(defvar parrot-current-animation-frame-interval
+  parrot-animation-frame-interval
+  "Internal animation frame interval in seconds.")
 
 (defvar parrot-animation-timer nil
   "Internal timer used for switching animation frames.")
 
 (defvar parrot-rotations 0
   "Counter of how many times the parrot has rotated.")
+
+(defun parrot-ascii-mode-p ()
+  "Return t if ascii mode parrot should be used."
+  (not (and (display-graphic-p) (image-type-available-p 'xpm))))
+
+(defun parrot-persistent-mode-p ()
+  "Return t if parrot persistent mode should be used."
+  (if (parrot-ascii-mode-p)
+      (/= parrot-ascii-animation-frame-interval
+          parrot-ascii-hook-animation-frame-interval)
+    (/= parrot-animation-frame-interval
+        parrot-hook-animation-frame-interval)))
 
 (defun parrot-start-animation ()
   "Start the parrot animation."
@@ -82,9 +118,18 @@
   (when (not (and parrot-animate-parrot
                   parrot-animation-timer))
     (setq parrot-animation-timer (run-at-time nil
-                                              parrot-animation-frame-interval
+                                              parrot-current-animation-frame-interval
                                               #'parrot-switch-anim-frame))
     (setq parrot-animate-parrot t)))
+
+(defun parrot-hook-start-animation ()
+  "Start the parrot animation when a hook is fired."
+  (parrot-stop-animation)
+  (setq parrot-current-animation-frame-interval
+        (if (parrot-ascii-mode-p)
+            parrot-ascii-hook-animation-frame-interval
+          parrot-hook-animation-frame-interval))
+  (parrot-start-animation))
 
 (defun parrot-stop-animation ()
   "Stop the parrot animation."
@@ -93,10 +138,14 @@
              parrot-animation-timer)
     (cancel-timer parrot-animation-timer)
     (setq parrot-animation-timer nil)
-    (setq parrot-animate-parrot nil)))
+    (setq parrot-animate-parrot nil))
+  (setq parrot-current-animation-frame-interval
+        (if (parrot-ascii-mode-p)
+            parrot-ascii-animation-frame-interval
+          parrot-animation-frame-interval)))
 
 (defcustom parrot-minimum-window-width 45
-  "Determines the minimum width of the window, below which party parrot will not be displayed."
+  "The minimum width of the window, below which party parrot will not be displayed."
   :type 'integer
   :set (lambda (sym val)
          (set-default sym val)
@@ -152,7 +201,10 @@ For example, an animation with a total of ten frames would have a
 
 (defun parrot-load-frames (parrot)
   "Load the images for the selected PARROT."
-  (when (image-type-available-p 'xpm)
+  (if (parrot-ascii-mode-p)
+      (progn
+        (setq parrot-static-image (car parrot-ascii-animation-frames))
+        (setq parrot-animation-frames parrot-ascii-animation-frames))
     (setq parrot-static-image (parrot-create-frame parrot 1))
     (setq parrot-animation-frames (mapcar (lambda (id)
                                             (parrot-create-frame parrot id))
@@ -170,7 +222,8 @@ For example, an animation with a total of ten frames would have a
         (t (error (format "Invalid parrot %s" parrot)))))
 
 (defun parrot-set-parrot-type (parrot &optional silent)
-  "Set the desired PARROT type in the mode line."
+  "Set the desired PARROT type in the mode line.
+If SILENT flag is passed, do not display a message."
   (interactive (list (completing-read "Select parrot: "
                                       '(default confused emacs nyan rotating science thumbsup) nil t)))
   (setq parrot-frame-list (number-sequence 1 (parrot-sequence-length parrot)))
@@ -185,12 +238,20 @@ For example, an animation with a total of ten frames would have a
 (defun parrot-switch-anim-frame ()
   "Change to the next frame in the parrot animation.
 If the parrot has already rotated for `parrot-num-rotations', the animation will
-stop."
+stop, unless persistent mode is on.  The parrot will resume rotating at the
+original speed if persistent mode is on."
   (setq parrot-current-frame (% (+ 1 parrot-current-frame) (car (last parrot-frame-list))))
   (when (eq parrot-current-frame 0)
     (setq parrot-rotations (+ 1 parrot-rotations))
     (when (and parrot-num-rotations (>= parrot-rotations parrot-num-rotations))
-      (parrot-stop-animation)))
+      (parrot-stop-animation)
+      ;; If persistent mode is on, restore the original speed and continue to rotate
+      (when (parrot-persistent-mode-p)
+        (setq parrot-current-animation-frame-interval
+              (if (parrot-ascii-mode-p)
+                  parrot-ascii-animation-frame-interval
+                parrot-animation-frame-interval))
+        (parrot-start-animation))))
   (force-mode-line-update))
 
 (defun parrot-get-anim-frame ()
@@ -202,7 +263,7 @@ stop."
 (defun parrot-add-click-handler (string)
   "Add a handler to STRING for animating the parrot when it is clicked."
   (propertize string 'keymap `(keymap (mode-line keymap (down-mouse-1 . ,(lambda () (interactive)
-                                                                           (parrot-start-animation)
+                                                                           (parrot-hook-start-animation)
                                                                            (run-hooks 'parrot-click-hook)))))))
 
 (defun parrot-create ()
@@ -211,8 +272,8 @@ stop."
       ""                                ; disabled for too small windows
     (let ((parrot-string (make-string parrot-spaces-before ?\s)))
       (setq parrot-string (concat parrot-string (parrot-add-click-handler
-                                                             (propertize "-" 'display (parrot-get-anim-frame)))
-                                        (make-string parrot-spaces-after ?\s)))
+                                                 (propertize "-" 'display (parrot-get-anim-frame)))
+                                  (make-string parrot-spaces-after ?\s)))
       (propertize parrot-string 'help-echo parrot-modeline-help-string))))
 
 (defvar parrot-old-cdr-mode-line-position nil)

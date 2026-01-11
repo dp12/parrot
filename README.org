@@ -2,7 +2,6 @@
 
 [[https://stable.melpa.org/#/parrot][file:https://stable.melpa.org/packages/parrot-badge.svg]]
 [[https://melpa.org/#/parrot][file:https://melpa.org/packages/parrot-badge.svg]]
-[[https://travis-ci.org/dp12/parrot][file:https://api.travis-ci.org/dp12/parrot.png?branch=master]]
 [[http://www.gnu.org/licenses/gpl-3.0.html][file:http://img.shields.io/:license-gpl3-blue.svg]]
 
 ** Background
@@ -142,11 +141,11 @@ Clicking on the parrot will cause it to rotate, but for mouse-less operation, it
 - =parrot-rotate-start-bound-regexp= - regexp used to find the start bound to search for rotations.
 - =parrot-rotate-end-bound-regexp= - regexp used to find the end bound to search for rotations.
 *** Customization
-Is parrot not rotating as much as you want it to? To truly become a parrot provocateur, you can make parrot rotate for many divers reasons by adding =parrot-start-animation= to various hooks.
+Is parrot not rotating as much as you want it to? To truly become a parrot provocateur, you can make parrot rotate for many divers reasons by adding =parrot-hook-start-animation= to various hooks.
 
 For example, if you want the parrot to animate whenever you receive mail in mu4e, you can try:
 #+begin_src emacs-lisp
-(add-hook 'mu4e-index-updated-hook #'parrot-start-animation)
+(add-hook 'mu4e-index-updated-hook #'parrot-hook-start-animation)
 #+end_src
 
 You can also add functions to =parrot-click-hook= so they will run whenever you click on the parrot.
@@ -160,10 +159,21 @@ Want parrot to rotate forever? Set =parrot-num-rotations= to nil to get perfectl
 (setq parrot-num-rotations nil)
 #+end_src
 
+*Parrot Hook Speed Customization*
+Want the parrot to spin slower or faster when a hook function fires? Setting the =parrot-hook-animation-frame-interval= to a different value than =parrot-animation-frame-interval= will accomplish this and also cause the parrot to spin in perpetuity when =parrot-hook-start-animation= is called.
+#+begin_src emacs-lisp
+(setq parrot-animation-frame-interval 0.045)
+(setq parrot-hook-animation-frame-interval 0.09) ;; <-- it's slower
+
+;; ascii version of parrot looks nicer with a different speed than the graphical one
+(setq parrot-ascii-animation-frame-interval 0.2)
+(setq parrot-ascii-hook-animation-frame-interval 0.4)
+#+end_src
+Thanks to @jnc-nj for the PoC.
 ** Misc
 Parrot is integration-tested with ecukes [[https://github.com/ecukes/ecukes][🥒]] and is licensed under the GPLv3.
 
-This is my first emacs package, and as such, I'm happy to receive comments or suggestions about elisp coding, feature requests, or contributions. 
+I designed parrot first as a text rotation package, with some optional eyecandy on the modebar. Therefore, I now consider parrot feature-complete in terms of rotate-text and animation functionality. In the interest of avoiding scope creep, no new PRs related to animation features will be merged. However, feel free to fork your own versions of parrot and expand on it for other purposes. I envision some nice names for animation-focused parrot packages could be "parrot-animations" or "parrot-notifications".
 
 Because of the amount of raw lisp being converted to kinetic energy, using parrot to rotate may sink as much power as the equivalent [[https://github.com/TeMPOraL/nyan-mode][poptart]]. dp12 is not responsible for any seizures or bird-like dance moves that may occur due to this package.
 ** Acknowledgements
